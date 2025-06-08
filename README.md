@@ -49,7 +49,7 @@ To get a local copy up and running follow these simple example steps.
    - Create a `.env` file in the root directory.
    - Add the following variables:
      ```
-     VITE_API_URL=http://localhost:5000/api
+     VITE_API_URL=http://localhost:5000/
      ```
 5. Start the development server:
    ```bash

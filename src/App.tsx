@@ -62,8 +62,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const fetchAssets = async () => {
     try {
       const [assetsResponse, expiriesResponse] = await Promise.all([
-        fetch(`${HOST}/api/assets`),
-        fetch(`${HOST}/api/expiries`),
+        fetch(`${HOST}/assets`),
+        fetch(`${HOST}/expiries`),
       ]);
       if (!assetsResponse.ok || !expiriesResponse.ok) {
         throw new Error("Network response was not ok");
@@ -85,7 +85,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const fetchOptionsData = async (selectedOption: SelectedOption) => {
     if (selectedOption) {
       try {
-        const response = await fetch(`${HOST}/api/option_chain`, {
+        const response = await fetch(`${HOST}/option_chain`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
