@@ -1,8 +1,15 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { ChartContainer } from "./ui/chart";
+import {
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "./ui/chart";
 import type { ChartConfig } from "./ui/chart";
 import { CartesianGrid, Scatter, ScatterChart, XAxis, YAxis } from "recharts";
+import { AxisSelector } from "./axis-selector";
 
 type SingleOptionData = {
   bsmPrice: number;
@@ -33,13 +40,13 @@ type VolChartProps = {
 };
 
 const chartConfig = {
-  desktop: {
-    label: "Desktop",
+  Calls: {
+    label: "Calls",
     color: "hsl(var(--chart-1))",
   },
-  mobile: {
-    label: "Mobile",
-    color: "hsl(var(--chart-2))",
+  Puts: {
+    label: "Puts",
+    color: "hsl(var(--chart-5))",
   },
 } satisfies ChartConfig;
 
@@ -51,7 +58,7 @@ export function VolChart({
 }: VolChartProps) {
   const [horizontalPoints, setHorizontalPoints] = useState<number[]>([]);
   const [flattenedData, setFlattenedData] = useState<SingleOptionData[]>([]);
-
+  const [selectedAxis, setSelectedAxis] = useState<string>(xAxis);
   const formatXAxisTick = (value: number) => {
     if (xAxis === "logMoneyness") {
       return value.toFixed(2).toString();
@@ -81,29 +88,23 @@ export function VolChart({
     }
   }, [callData, putData]);
 
-  useEffect(() => {
-    if (xAxis === "logMoneyness") {
-      const points = flattenedData.map((d) => d.logMoneyness);
-      setHorizontalPoints(points);
-    } else if (xAxis === "strikePrice") {
-      const points = flattenedData.map((d) => d.strikePrice);
-      setHorizontalPoints(points);
-    } else if (xAxis === "moneyness") {
-      const points = flattenedData.map((d) => d.moneyness);
-      setHorizontalPoints(points);
-    }
-  }, [xAxis, flattenedData]);
-
+  const handleAxisChange = (value: string) => {
+    console.log("Selected axis:", value);
+    setSelectedAxis(value);
+  };
   return (
     <Card className="my-2 mr-2 h-[calc(100vh-16px)]">
-      <CardHeader>
-        <CardTitle>Implied Volatility Curve</CardTitle>
+      <CardHeader className="flex flex-row items-center relative">
+        <AxisSelector onValueChange={handleAxisChange} value={selectedAxis} />
+        <CardTitle className="absolute left-1/2 transform -translate-x-1/2">
+          Implied Volatility Curve
+        </CardTitle>
       </CardHeader>
       <ChartContainer config={chartConfig} className="h-full">
-        <ScatterChart margin={{ left: 20, right: 20 }}>
+        <ScatterChart margin={{ top: 20, right: 40, bottom: 20 }}>
           <CartesianGrid />
           <XAxis
-            dataKey={xAxis}
+            dataKey={selectedAxis}
             type="number"
             domain={["dataMin", "dataMax"]}
             tickLine={false}
@@ -136,6 +137,8 @@ export function VolChart({
               shape="circle"
             />
           )}
+          <ChartTooltip content={<ChartTooltipContent />} />
+          <ChartLegend content={<ChartLegendContent />} />
         </ScatterChart>
       </ChartContainer>
     </Card>

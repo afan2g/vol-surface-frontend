@@ -6,7 +6,11 @@ import { ThemeProvider } from "./components/theme-provider";
 import { OptionChainTable } from "./components/option-chain-table";
 import { VolChart } from "./components/vol-chart";
 import { ScrollArea } from "./components/ui/scroll-area";
-import { ResizablePanel, ResizablePanelGroup } from "./components/ui/resizable";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "./components/ui/resizable";
 const HOST = import.meta.env.VITE_API_SERVER_URL;
 
 type Option = {
@@ -136,17 +140,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <ResizablePanel maxSize={30}>
             <ScrollArea className=" h-[calc(100vh)] px-2 ">
               {optionData.C && (
-                <OptionChainTable optionData={optionData.C} caption="Calls" />
+                <OptionChainTable optionData={optionData.C} caption="Call" />
               )}
               {optionData.P && (
-                <OptionChainTable optionData={optionData.P} caption="Puts" />
+                <OptionChainTable optionData={optionData.P} caption="Put" />
               )}
             </ScrollArea>
           </ResizablePanel>
           {(optionData.C || optionData.P) && (
-            <ResizablePanel defaultSize={70}>
-              <VolChart callData={optionData?.C} putData={optionData?.P} />
-            </ResizablePanel>
+            <>
+              <ResizableHandle />
+              <ResizablePanel defaultSize={70} maxSize={80}>
+                <VolChart callData={optionData?.C} putData={optionData?.P} />
+              </ResizablePanel>
+            </>
           )}
         </ResizablePanelGroup>
       </SidebarProvider>

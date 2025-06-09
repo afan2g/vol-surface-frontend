@@ -1,3 +1,4 @@
+import { AxisSelector } from "./axis-selector";
 import { Card, CardHeader, CardTitle } from "./ui/card";
 import {
   Table,
@@ -36,6 +37,27 @@ export function OptionChainTable({
     currency: "USD",
   });
 
+  const getRowColor = (logMoneyness: number) => {
+    const maxAbs = 0.2;
+    const normalizedValue = Math.max(-1, Math.min(1, logMoneyness / maxAbs));
+    const isCall = caption.toLowerCase().includes("call");
+
+    if (normalizedValue > 0) {
+      const intensity = normalizedValue * 0.7;
+      return isCall
+        ? `rgba(239, 68, 68, ${intensity})`
+        : `rgba(34, 197, 94, ${intensity})`;
+    } else if (normalizedValue < 0) {
+      const intensity = Math.abs(normalizedValue) * 0.7;
+      return isCall
+        ? `rgba(34, 197, 94, ${intensity})`
+        : `rgba(239, 68, 68, ${intensity})`;
+    } else {
+      // ATM
+      return `rgba(148, 163, 184, 0.1)`;
+    }
+  };
+
   return (
     <Card className="my-2 px-4">
       <CardHeader className="pl-2">
@@ -53,7 +75,11 @@ export function OptionChainTable({
         </TableHeader>
         <TableBody>
           {optionData.map((option, index) => (
-            <TableRow key={index}>
+            <TableRow
+              key={index}
+              style={{ backgroundColor: getRowColor(option.logMoneyness) }}
+              className="transition-colors hover:bg-opacity-80"
+            >
               <TableCell>{option.symbol}</TableCell>
               <TableCell className="text-right">
                 {dollarFormatter.format(option.strikePrice)}
@@ -62,7 +88,7 @@ export function OptionChainTable({
                 {dollarFormatter.format(option.markPrice)}
               </TableCell>
               <TableCell className="text-right">
-                {option.markIV.toFixed(2)}
+                {(option.markIV * 100).toFixed(3)}
               </TableCell>
               <TableCell className="text-right">
                 {option.logMoneyness.toFixed(3)}
