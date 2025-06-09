@@ -1,3 +1,4 @@
+import { Card, CardHeader, CardTitle } from "./ui/card";
 import {
   Table,
   TableBody,
@@ -5,52 +6,71 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableCaption,
 } from "./ui/table";
 
-type OptionData = {
-  bsmPrice: bigint;
+type SingleOptionData = {
+  bsmPrice: number;
   daysToExpiry: number;
-  logMoneyness: bigint;
-  markIV: bigint;
-  moneyness: bigint;
-  markPrice: bigint;
-  riskFreeRate: bigint;
-  spotPrice: bigint;
-  strikePrice: bigint;
+  logMoneyness: number;
+  markIV: number;
+  moneyness: number;
+  markPrice: number;
+  riskFreeRate: number;
+  spotPrice: number;
+  strikePrice: number;
   symbol: string;
   timeToExpiry: number;
 };
 
-export function OptionChainTable({ optionData }: { optionData: OptionData[] }) {
+type OptionsData = SingleOptionData[];
+export function OptionChainTable({
+  optionData,
+  caption,
+}: {
+  optionData: OptionsData;
+  caption: string;
+}) {
   const dollarFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
   });
 
   return (
-    <Table className="">
-      <TableHeader>
-        <TableRow>
-          <TableHead>Symbol</TableHead>
-          <TableHead>Strike Price</TableHead>
-          <TableHead>Market Premium</TableHead>
-          <TableHead>BSM Premium</TableHead>
-          <TableHead>Implied Volatility</TableHead>
-          <TableHead>Moneyness (lnS/K)</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {optionData.map((option, index) => (
-          <TableRow key={index}>
-            <TableCell>{option.symbol}</TableCell>
-            <TableCell>{dollarFormatter.format(option.strikePrice)}</TableCell>
-            <TableCell>{dollarFormatter.format(option.markPrice)}</TableCell>
-            <TableCell>{dollarFormatter.format(option.bsmPrice)}</TableCell>
-            <TableCell>{option.markIV}</TableCell>
-            <TableCell>{option.logMoneyness}</TableCell>
+    <Card className="my-2 px-4">
+      <CardHeader className="pl-2">
+        <CardTitle>{caption} Options Chain</CardTitle>
+      </CardHeader>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Symbol</TableHead>
+            <TableHead className="text-right">Strike Price</TableHead>
+            <TableHead className="text-right">Premium</TableHead>
+            <TableHead className="text-right">IV (%)</TableHead>
+            <TableHead className="text-right">(lnK/F)</TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {optionData.map((option, index) => (
+            <TableRow key={index}>
+              <TableCell>{option.symbol}</TableCell>
+              <TableCell className="text-right">
+                {dollarFormatter.format(option.strikePrice)}
+              </TableCell>
+              <TableCell className="text-right">
+                {dollarFormatter.format(option.markPrice)}
+              </TableCell>
+              <TableCell className="text-right">
+                {option.markIV.toFixed(2)}
+              </TableCell>
+              <TableCell className="text-right">
+                {option.logMoneyness.toFixed(3)}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </Card>
   );
 }

@@ -3,6 +3,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 import { DatePicker } from "./date-picker";
@@ -26,9 +27,10 @@ type SidebarProps = {
 export function AppSidebar({ onViewDetails, spotPrices }: SidebarProps) {
   const [asset, setAsset] = useState<string | undefined>(undefined);
   const [expiryDate, setExpiryDate] = useState<Date | undefined>(undefined);
-  const [isPutsSelected, setIsPutsSelected] = useState<boolean>(false);
-  const [isCallsSelected, setIsCallsSelected] = useState<boolean>(false);
+  const [isPutsSelected, setIsPutsSelected] = useState<boolean>(true);
+  const [isCallsSelected, setIsCallsSelected] = useState<boolean>(true);
 
+  const { toggleSidebar } = useSidebar();
   const handleAssetSelected = (value: string) => {
     console.log("Selected asset:", value);
     setAsset(value);
@@ -48,6 +50,7 @@ export function AppSidebar({ onViewDetails, spotPrices }: SidebarProps) {
         isCallsSelected,
       });
     }
+    toggleSidebar();
   };
 
   return (
@@ -67,6 +70,7 @@ export function AppSidebar({ onViewDetails, spotPrices }: SidebarProps) {
             className="w-full"
             variant="outline"
             onPressedChange={() => setIsPutsSelected(!isPutsSelected)}
+            defaultPressed={true}
           >
             Puts
           </Toggle>
@@ -74,6 +78,7 @@ export function AppSidebar({ onViewDetails, spotPrices }: SidebarProps) {
             className="w-full"
             variant="outline"
             onPressedChange={() => setIsCallsSelected(!isCallsSelected)}
+            defaultPressed={true}
           >
             Calls
           </Toggle>

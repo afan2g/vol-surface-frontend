@@ -4,6 +4,9 @@ import { SidebarProvider, SidebarTrigger } from "./components/ui/sidebar";
 import { AppSidebar } from "./components/app-sidebar";
 import { ThemeProvider } from "./components/theme-provider";
 import { OptionChainTable } from "./components/option-chain-table";
+import { VolChart } from "./components/vol-chart";
+import { ScrollArea } from "./components/ui/scroll-area";
+import { ResizablePanel, ResizablePanelGroup } from "./components/ui/resizable";
 const HOST = import.meta.env.VITE_API_SERVER_URL;
 
 type Option = {
@@ -12,23 +15,23 @@ type Option = {
   type: string; // "call" or "put"
 };
 
-type OptionData = {
-  bsmPrice: bigint;
+type SingleOptionData = {
+  bsmPrice: number;
   daysToExpiry: number;
-  logMoneyness: bigint;
-  markIV: bigint;
-  moneyness: bigint;
-  markPrice: bigint;
-  riskFreeRate: bigint;
-  spotPrice: bigint;
-  strikePrice: bigint;
+  logMoneyness: number;
+  markIV: number;
+  moneyness: number;
+  markPrice: number;
+  riskFreeRate: number;
+  spotPrice: number;
+  strikePrice: number;
   symbol: string;
   timeToExpiry: number;
 };
 
 type OptionResponse = {
-  C?: OptionData[];
-  P?: OptionData[];
+  C?: SingleOptionData[];
+  P?: SingleOptionData[];
 };
 
 type SelectedOption = {
@@ -128,12 +131,24 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           onViewDetails={handleViewDetails}
           spotPrices={assetSpotPrices}
         />
-        <main className="flex-1">
+        <ResizablePanelGroup direction="horizontal">
           <SidebarTrigger />
+          <ResizablePanel maxSize={30}>
+            <ScrollArea className=" h-[calc(100vh)] px-2 ">
+              {optionData.C && (
+                <OptionChainTable optionData={optionData.C} caption="Calls" />
+              )}
+              {optionData.P && (
+                <OptionChainTable optionData={optionData.P} caption="Puts" />
+              )}
+            </ScrollArea>
+          </ResizablePanel>
           {(optionData.C || optionData.P) && (
-            <OptionChainTable optionData={optionData.C ?? optionData.P ?? []} />
+            <ResizablePanel defaultSize={70}>
+              <VolChart callData={optionData?.C} putData={optionData?.P} />
+            </ResizablePanel>
           )}
-        </main>
+        </ResizablePanelGroup>
       </SidebarProvider>
     </ThemeProvider>
   );
