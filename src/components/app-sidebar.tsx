@@ -85,6 +85,14 @@ export function AppSidebar({
             onDateSelected={handleDateSelected}
             disabled={!asset}
             enabledDates={enabledDates}
+            date={expiryDate}
+            placeholder={
+              asset
+                ? `${enabledDates.length} ${
+                    enabledDates.length === 1 ? "Expiry" : "Expiries"
+                  }`
+                : "Expiry date"
+            }
           />
         </SidebarMenuItem>
         <SidebarMenuItem className="flex items-center justify-between gap-2 px-2">

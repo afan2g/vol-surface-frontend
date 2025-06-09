@@ -14,15 +14,17 @@ export function DatePicker({
   disabled = false,
   onDateSelected,
   enabledDates = [],
+  date,
+  placeholder = "Expiry date",
 }: {
   disabled?: boolean;
   onDateSelected?: (date: Date) => void;
   enabledDates?: Date[];
+  date?: Date;
+  placeholder?: string;
 }) {
-  const [date, setDate] = React.useState<Date>();
   const [open, setOpen] = React.useState(false);
   const handleDateChange = (selectedDate: Date | undefined) => {
-    setDate(selectedDate);
     setOpen(false);
     if (onDateSelected && selectedDate) {
       onDateSelected(selectedDate);
@@ -39,7 +41,7 @@ export function DatePicker({
           disabled={disabled}
         >
           <CalendarIcon />
-          {date ? format(date, "PPP") : <span>Expiry date</span>}
+          {date ? format(date, "PPP") : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0">

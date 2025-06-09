@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { AxisSelector } from "./axis-selector";
 import { Card, CardHeader, CardTitle } from "./ui/card";
 import {
@@ -36,9 +37,18 @@ export function OptionChainTable({
     style: "currency",
     currency: "USD",
   });
+  const [maxAbsLogMoneyness, setMaxAbsLogMoneyness] = useState(0.2);
+  useEffect(() => {
+    if (optionData.length > 0) {
+      const maxLogMoneyness = Math.max(
+        ...optionData.map((opt) => Math.abs(opt.logMoneyness))
+      );
+      setMaxAbsLogMoneyness(Math.ceil(maxLogMoneyness * 10) / 10);
+    }
+  }, [optionData]);
 
   const getRowColor = (logMoneyness: number) => {
-    const maxAbs = 0.2;
+    const maxAbs = maxAbsLogMoneyness || 0.2; // Fallback to 0.2 if no data
     const normalizedValue = Math.max(-1, Math.min(1, logMoneyness / maxAbs));
     const isCall = caption.toLowerCase().includes("call");
 

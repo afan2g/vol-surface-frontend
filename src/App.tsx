@@ -138,7 +138,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         />
         <ResizablePanelGroup direction="horizontal">
           <SidebarTrigger />
-          <ResizablePanel maxSize={30}>
+          <ResizablePanel maxSize={30} minSize={25}>
             <ScrollArea className=" h-[calc(100vh)] px-2 ">
               {optionData.C && (
                 <OptionChainTable optionData={optionData.C} caption="Call" />
