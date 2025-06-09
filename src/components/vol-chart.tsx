@@ -50,14 +50,38 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const CustomTooltipContent = ({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: { name: string; value: number; payload: SingleOptionData }[];
+}) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    const dollarFormatter = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    });
+    return (
+      <CardContent className="p-2">
+        <div className="text-sm font-medium">{data.symbol}</div>
+        <div>Strike Price: {dollarFormatter.format(data.strikePrice)}</div>
+        <div>IV: {(data.markIV * 100).toFixed(2)}%</div>
+        <div>Log Moneyness: {data.logMoneyness.toFixed(2)}</div>
+        <div>Moneyness: {data.moneyness.toFixed(2)}</div>
+      </CardContent>
+    );
+  }
+  return null;
+};
+
 export function VolChart({
   callData,
   putData,
   xAxis = "logMoneyness",
   sviPoints,
 }: VolChartProps) {
-  const [horizontalPoints, setHorizontalPoints] = useState<number[]>([]);
-  const [flattenedData, setFlattenedData] = useState<SingleOptionData[]>([]);
   const [selectedAxis, setSelectedAxis] = useState<string>(xAxis);
   const formatXAxisTick = (value: number) => {
     if (xAxis === "logMoneyness") {
@@ -80,13 +104,6 @@ export function VolChart({
   const formatYAxisTick = (value: number) => {
     return value.toFixed(2).toString();
   };
-
-  useEffect(() => {
-    if (callData || putData) {
-      const data = [...(callData || []), ...(putData || [])];
-      setFlattenedData(data);
-    }
-  }, [callData, putData]);
 
   const handleAxisChange = (value: string) => {
     console.log("Selected axis:", value);
@@ -137,7 +154,7 @@ export function VolChart({
               shape="circle"
             />
           )}
-          <ChartTooltip content={<ChartTooltipContent />} />
+          <ChartTooltip content={<CustomTooltipContent />} />
           <ChartLegend content={<ChartLegendContent />} />
         </ScatterChart>
       </ChartContainer>

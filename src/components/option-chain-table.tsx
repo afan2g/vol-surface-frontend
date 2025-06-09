@@ -88,7 +88,7 @@ export function OptionChainTable({
                 {dollarFormatter.format(option.markPrice)}
               </TableCell>
               <TableCell className="text-right">
-                {(option.markIV * 100).toFixed(3)}
+                {(option.markIV * 100).toFixed(2)}
               </TableCell>
               <TableCell className="text-right">
                 {option.logMoneyness.toFixed(3)}
