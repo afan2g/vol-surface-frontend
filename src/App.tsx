@@ -134,6 +134,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <AppSidebar
           onViewDetails={handleViewDetails}
           spotPrices={assetSpotPrices}
+          availableExpiries={expiryObject}
         />
         <ResizablePanelGroup direction="horizontal">
           <SidebarTrigger />

@@ -11,6 +11,8 @@ import { Combobox } from "./combo-box";
 import { Toggle } from "./ui/toggle";
 import { Button } from "./ui/button";
 import { useState } from "react";
+import { Value } from "@radix-ui/react-select";
+import { set } from "date-fns";
 
 type SelectedOption = {
   asset?: string;
@@ -22,11 +24,16 @@ type SidebarProps = {
   onViewDetails?: (option: SelectedOption) => void;
   availableAssets?: string[];
   spotPrices?: Record<string, string>;
-  availableExpiries?: Record<string, [number, string][]>;
+  availableExpiries: Record<string, [number, string][]>;
 };
-export function AppSidebar({ onViewDetails, spotPrices }: SidebarProps) {
+export function AppSidebar({
+  onViewDetails,
+  spotPrices,
+  availableExpiries,
+}: SidebarProps) {
   const [asset, setAsset] = useState<string | undefined>(undefined);
   const [expiryDate, setExpiryDate] = useState<Date | undefined>(undefined);
+  const [enabledDates, setEnabledDates] = useState<Date[]>([]);
   const [isPutsSelected, setIsPutsSelected] = useState<boolean>(true);
   const [isCallsSelected, setIsCallsSelected] = useState<boolean>(true);
 
@@ -34,6 +41,17 @@ export function AppSidebar({ onViewDetails, spotPrices }: SidebarProps) {
   const handleAssetSelected = (value: string) => {
     console.log("Selected asset:", value);
     setAsset(value);
+    setExpiryDate(undefined);
+    const dates = availableExpiries[value] ?? [];
+    console.log("Available expiries for asset:", dates);
+    setEnabledDates(
+      dates.map((date) => {
+        console.log("Date:", date);
+        const newDate = new Date(date[0]); // Convert Unix timestamp to Date
+        console.log("Converted date:", newDate);
+        return newDate;
+      })
+    );
   };
 
   const handleDateSelected = (date: Date) => {
@@ -63,7 +81,11 @@ export function AppSidebar({ onViewDetails, spotPrices }: SidebarProps) {
           />
         </SidebarMenuItem>
         <SidebarMenuItem>
-          <DatePicker onDateSelected={handleDateSelected} disabled={!asset} />
+          <DatePicker
+            onDateSelected={handleDateSelected}
+            disabled={!asset}
+            enabledDates={enabledDates}
+          />
         </SidebarMenuItem>
         <SidebarMenuItem className="flex items-center justify-between gap-2 px-2">
           <Toggle

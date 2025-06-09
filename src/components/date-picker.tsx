@@ -13,9 +13,11 @@ import {
 export function DatePicker({
   disabled = false,
   onDateSelected,
+  enabledDates = [],
 }: {
   disabled?: boolean;
   onDateSelected?: (date: Date) => void;
+  enabledDates?: Date[];
 }) {
   const [date, setDate] = React.useState<Date>();
   const [open, setOpen] = React.useState(false);
@@ -26,6 +28,7 @@ export function DatePicker({
       onDateSelected(selectedDate);
     }
   };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -46,6 +49,15 @@ export function DatePicker({
           onSelect={handleDateChange}
           className="rounded-md border shadow-sm w-full"
           captionLayout="dropdown"
+          startMonth={new Date()}
+          endMonth={new Date(enabledDates[enabledDates.length - 1])}
+          disabled={(date) => {
+            // Return true to disable, false to enable
+            return !enabledDates.some(
+              (enabledDate) =>
+                date.toDateString() === enabledDate.toDateString()
+            );
+          }}
         />
       </PopoverContent>
     </Popover>
