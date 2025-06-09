@@ -1,4 +1,3 @@
-import { Calendar } from "./components/ui/calendar";
 import { useEffect, useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "./components/ui/sidebar";
 import { AppSidebar } from "./components/app-sidebar";
@@ -53,8 +52,8 @@ function toYYMMDD(date: Date): string {
   return yy + mm + dd;
 }
 
-export default function Layout({ children }: { children: React.ReactNode }) {
-  const [availableAssets, setAvailableAssets] = useState<string[]>([]);
+export default function Layout() {
+  //const [availableAssets, setAvailableAssets] = useState<string[]>([]);
   const [assetSpotPrices, setAssetSpotPrices] = useState<
     Record<string, string>
   >({});
@@ -63,7 +62,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   >({});
   const [optionData, setOptionData] = useState<OptionResponse>({});
   const [sviType, setSviType] = useState<"natural" | "raw">("natural");
-  const [sviParams, setSviParams] = useState<number[]>([]);
+ // const [sviParams, setSviParams] = useState<number[]>([]);
   const [sviPoints, setSviPoints] = useState<SviPoint[]>([]);
 
   useEffect(() => {
