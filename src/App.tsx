@@ -53,7 +53,7 @@ function toYYMMDD(date: Date): string {
 }
 
 export default function Layout() {
-  //const [availableAssets, setAvailableAssets] = useState<string[]>([]);
+  const [availableAssets, setAvailableAssets] = useState<string[]>([]);
   const [assetSpotPrices, setAssetSpotPrices] = useState<
     Record<string, string>
   >({});
@@ -62,7 +62,7 @@ export default function Layout() {
   >({});
   const [optionData, setOptionData] = useState<OptionResponse>({});
   const [sviType, setSviType] = useState<"natural" | "raw">("natural");
- // const [sviParams, setSviParams] = useState<number[]>([]);
+  const [sviParams, setSviParams] = useState<number[]>([]);
   const [sviPoints, setSviPoints] = useState<SviPoint[]>([]);
 
   useEffect(() => {
@@ -144,7 +144,8 @@ export default function Layout() {
         console.log("SVI Type:", parameterization_type);
         console.log("SVI Params:", params);
         console.log("SVI Points:", points);
-
+        console.log(sviParams);
+        console.log(availableAssets);
         console.log("Options chain data:", data);
       } catch (error) {
         console.error("Error fetching options chain:", error);
