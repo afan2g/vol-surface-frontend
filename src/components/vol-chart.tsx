@@ -35,7 +35,7 @@ type VolChartProps = {
   callData?: SingleOptionData[];
   putData?: SingleOptionData[];
   xAxis?: "logMoneyness" | "strikePrice" | "moneyness";
-  //sviPoints?: SVIPoint[];
+  sviPoints?: SVIPoint[];
 };
 
 const chartConfig = {
@@ -79,7 +79,7 @@ export function VolChart({
   callData,
   putData,
   xAxis = "logMoneyness",
-  //sviPoints,
+  sviPoints,
 }: VolChartProps) {
   const [selectedAxis, setSelectedAxis] = useState<string>(xAxis);
   const formatXAxisTick = (value: number) => {
@@ -107,6 +107,7 @@ export function VolChart({
   const handleAxisChange = (value: string) => {
     console.log("Selected axis:", value);
     setSelectedAxis(value);
+    console.log(sviPoints);
   };
   return (
     <Card className="my-2 mr-2 h-[calc(100vh-16px)]">

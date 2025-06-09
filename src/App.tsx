@@ -139,9 +139,9 @@ export default function Layout() {
           await sviResponse.json();
         
         setOptionData(data);
-        const parameterization_type = sviResponse.parameterization_type;
-        const params = sviResponse.params;
-        const points = sviResponse.points;
+        const parameterization_type = jsonResp.parameterization_type;
+        const params = jsonResp.params;
+        const points = jsonResp.points;
         setSviType(parameterization_type);
         setSviParams(params);
         setSviPoints(points);
