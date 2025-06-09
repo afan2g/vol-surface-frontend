@@ -13,10 +13,11 @@ import {
 } from "./components/ui/resizable";
 const HOST = import.meta.env.VITE_API_SERVER_URL;
 
-type Option = {
-  asset: string;
-  expiryDate: string;
-  type: string; // "call" or "put"
+type SviPoint = {
+  impliedVolatility: number;
+  logMoneyness: number;
+  moneyness: number;
+  strikePrice: number;
 };
 
 type SingleOptionData = {
@@ -61,6 +62,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     Record<string, [number, string][]>
   >({});
   const [optionData, setOptionData] = useState<OptionResponse>({});
+  const [sviType, setSviType] = useState<"natural" | "raw">("natural");
+  const [sviParams, setSviParams] = useState<number[]>([]);
+  const [sviPoints, setSviPoints] = useState<SviPoint[]>([]);
 
   useEffect(() => {
     fetchAssets();
@@ -92,26 +96,55 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const fetchOptionsData = async (selectedOption: SelectedOption) => {
     if (selectedOption) {
       try {
-        const response = await fetch(`${HOST}/option_chain`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            asset: selectedOption.asset,
-            expiry: toYYMMDD(selectedOption.expiryDate!),
-            side: selectedOption.isPutsSelected
-              ? selectedOption.isCallsSelected
-                ? "A"
-                : "P"
-              : "C",
+        const [optionChainResponse, sviResponse] = await Promise.all([
+          fetch(`${HOST}/option_chain`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              asset: selectedOption.asset,
+              expiry: toYYMMDD(selectedOption.expiryDate!),
+              side: selectedOption.isPutsSelected
+                ? selectedOption.isCallsSelected
+                  ? "A"
+                  : "P"
+                : "C",
+            }),
           }),
-        });
-        if (!response.ok) {
+          fetch(`${HOST}/svi_curve`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              asset: selectedOption.asset,
+              expiry: toYYMMDD(selectedOption.expiryDate!),
+              side: selectedOption.isPutsSelected
+                ? selectedOption.isCallsSelected
+                  ? "A"
+                  : "P"
+                : "C",
+              parameterization_type: sviType,
+            }),
+          }),
+        ]);
+        if (!optionChainResponse.ok) {
           throw new Error("Network response was not ok");
         }
-        const data = await response.json();
+        if (!sviResponse.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await optionChainResponse.json();
+        const { parameterization_type, params, points } =
+          await sviResponse.json();
         setOptionData(data);
+        setSviType(parameterization_type);
+        setSviParams(params);
+        setSviPoints(points);
+        console.log("SVI Type:", parameterization_type);
+        console.log("SVI Params:", params);
+        console.log("SVI Points:", points);
 
         console.log("Options chain data:", data);
       } catch (error) {
@@ -152,7 +185,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <>
               <ResizableHandle />
               <ResizablePanel defaultSize={70} maxSize={80}>
-                <VolChart callData={optionData?.C} putData={optionData?.P} />
+                <VolChart
+                  callData={optionData?.C}
+                  putData={optionData?.P}
+                  sviPoints={sviPoints}
+                />
               </ResizablePanel>
             </>
           )}

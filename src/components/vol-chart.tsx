@@ -10,6 +10,7 @@ import {
 import type { ChartConfig } from "./ui/chart";
 import { CartesianGrid, Scatter, ScatterChart, XAxis, YAxis } from "recharts";
 import { AxisSelector } from "./axis-selector";
+import { Button } from "./ui/button";
 
 type SingleOptionData = {
   bsmPrice: number;
@@ -112,7 +113,9 @@ export function VolChart({
   return (
     <Card className="my-2 mr-2 h-[calc(100vh-16px)]">
       <CardHeader className="flex flex-row items-center relative">
-        <AxisSelector onValueChange={handleAxisChange} value={selectedAxis} />
+        <div>
+          <AxisSelector onValueChange={handleAxisChange} value={selectedAxis} />
+        </div>
         <CardTitle className="absolute left-1/2 transform -translate-x-1/2">
           Implied Volatility Curve
         </CardTitle>
