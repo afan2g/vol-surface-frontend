@@ -1,7 +1,6 @@
 import {
   Sidebar,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
@@ -11,8 +10,6 @@ import { Combobox } from "./combo-box";
 import { Toggle } from "./ui/toggle";
 import { Button } from "./ui/button";
 import { useState } from "react";
-import { Value } from "@radix-ui/react-select";
-import { set } from "date-fns";
 
 type SelectedOption = {
   asset?: string;
