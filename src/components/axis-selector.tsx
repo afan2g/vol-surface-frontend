@@ -19,9 +19,9 @@ export function AxisSelector({
         <SelectValue defaultValue="logMoneyness" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="logMoneyness">Log Moneyness ln(K/F)</SelectItem>
+        <SelectItem value="logMoneyness">Log Moneyness ln(F/K)</SelectItem>
         <SelectItem value="strikePrice">Strike Price</SelectItem>
-        <SelectItem value="moneyness">Moneyness (K/F)</SelectItem>
+        <SelectItem value="moneyness">Moneyness (F/K)</SelectItem>
       </SelectContent>
     </Select>
   );

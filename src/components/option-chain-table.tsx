@@ -79,7 +79,7 @@ export function OptionChainTable({
             <TableHead className="text-right">Strike Price</TableHead>
             <TableHead className="text-right">Premium</TableHead>
             <TableHead className="text-right">IV (%)</TableHead>
-            <TableHead className="text-right">(lnK/F)</TableHead>
+            <TableHead className="text-right">(lnF/K)</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
