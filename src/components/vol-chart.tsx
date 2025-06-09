@@ -1,16 +1,14 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import {
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
   ChartTooltip,
-  ChartTooltipContent,
 } from "./ui/chart";
 import type { ChartConfig } from "./ui/chart";
 import { CartesianGrid, Scatter, ScatterChart, XAxis, YAxis } from "recharts";
 import { AxisSelector } from "./axis-selector";
-import { Button } from "./ui/button";
 
 type SingleOptionData = {
   bsmPrice: number;
@@ -37,7 +35,7 @@ type VolChartProps = {
   callData?: SingleOptionData[];
   putData?: SingleOptionData[];
   xAxis?: "logMoneyness" | "strikePrice" | "moneyness";
-  sviPoints?: SVIPoint[];
+  //sviPoints?: SVIPoint[];
 };
 
 const chartConfig = {
@@ -81,7 +79,7 @@ export function VolChart({
   callData,
   putData,
   xAxis = "logMoneyness",
-  sviPoints,
+  //sviPoints,
 }: VolChartProps) {
   const [selectedAxis, setSelectedAxis] = useState<string>(xAxis);
   const formatXAxisTick = (value: number) => {
