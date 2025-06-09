@@ -175,7 +175,7 @@ export default function Layout() {
         />
         <ResizablePanelGroup direction="horizontal">
           <SidebarTrigger />
-          <ResizablePanel maxSize={30} minSize={25}>
+          <ResizablePanel minSize={40}>
             <ScrollArea className=" h-[calc(100vh)] px-2 ">
               {optionData.C && (
                 <OptionChainTable optionData={optionData.C} caption="Call" />
@@ -188,7 +188,7 @@ export default function Layout() {
           {(optionData.C || optionData.P) && (
             <>
               <ResizableHandle />
-              <ResizablePanel defaultSize={70} maxSize={80}>
+              <ResizablePanel defaultSize={70}>
                 <VolChart
                   callData={optionData?.C}
                   putData={optionData?.P}
