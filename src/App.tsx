@@ -135,9 +135,13 @@ export default function Layout() {
           throw new Error("Network response was not ok");
         }
         const data = await optionChainResponse.json();
-        const { parameterization_type, params, points } =
+        const jsonResp =
           await sviResponse.json();
+        
         setOptionData(data);
+        const parameterization_type = sviResponse.parameterization_type;
+        const params = sviResponse.params;
+        const points = sviResponse.points;
         setSviType(parameterization_type);
         setSviParams(params);
         setSviPoints(points);
