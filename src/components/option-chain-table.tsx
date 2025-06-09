@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AxisSelector } from "./axis-selector";
+//import { AxisSelector } from "./axis-selector";
 import { Card, CardHeader, CardTitle } from "./ui/card";
 import {
   Table,
@@ -8,7 +8,6 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  TableCaption,
 } from "./ui/table";
 
 type SingleOptionData = {
