@@ -7,14 +7,24 @@ import {
   ChartTooltip,
 } from "./ui/chart";
 import type { ChartConfig } from "./ui/chart";
-import { CartesianGrid, Scatter, ScatterChart, XAxis, YAxis } from "recharts";
+import {
+  CartesianGrid,
+  ComposedChart,
+  Legend,
+  Line,
+  Scatter,
+  ScatterChart,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { AxisSelector } from "./axis-selector";
 
 type SingleOptionData = {
   bsmPrice: number;
   daysToExpiry: number;
   logMoneyness: number;
-  markIV: number;
+  impliedVolatility: number;
   moneyness: number;
   markPrice: number;
   riskFreeRate: number;
@@ -54,7 +64,11 @@ const CustomTooltipContent = ({
   payload,
 }: {
   active?: boolean;
-  payload?: { name: string; value: number; payload: SingleOptionData }[];
+  payload?: {
+    name: string;
+    value: number;
+    payload: SingleOptionData | SVIPoint;
+  }[];
 }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
@@ -62,11 +76,13 @@ const CustomTooltipContent = ({
       style: "currency",
       currency: "USD",
     });
+    const iv = data.impliedVolatility;
+    const symbol = "symbol" in data ? data.symbol : null;
     return (
       <CardContent className="p-2">
-        <div className="text-sm font-medium">{data.symbol}</div>
+        <div className="text-sm font-medium">{symbol}</div>
         <div>Strike Price: {dollarFormatter.format(data.strikePrice)}</div>
-        <div>IV: {(data.markIV * 100).toFixed(2)}%</div>
+        <div>IV: {(iv * 100).toFixed(2)}%</div>
         <div>Log Moneyness: {data.logMoneyness.toFixed(2)}</div>
         <div>Moneyness: {data.moneyness.toFixed(2)}</div>
       </CardContent>
@@ -82,11 +98,12 @@ export function VolChart({
   sviPoints,
 }: VolChartProps) {
   const [selectedAxis, setSelectedAxis] = useState<string>(xAxis);
+
   const formatXAxisTick = (value: number) => {
-    if (xAxis === "logMoneyness") {
+    if (selectedAxis === "logMoneyness") {
       return value.toFixed(2).toString();
     }
-    if (xAxis === "strikePrice") {
+    if (selectedAxis === "strikePrice") {
       return new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "USD",
@@ -94,7 +111,7 @@ export function VolChart({
         .format(value)
         .toString();
     }
-    if (xAxis === "moneyness") {
+    if (selectedAxis === "moneyness") {
       return value.toFixed(2).toString();
     }
     return value.toString();
@@ -109,6 +126,7 @@ export function VolChart({
     setSelectedAxis(value);
     console.log(sviPoints);
   };
+
   return (
     <Card className="my-2 mr-2 h-[calc(100vh-16px)]">
       <CardHeader className="flex flex-row items-center relative">
@@ -120,7 +138,7 @@ export function VolChart({
         </CardTitle>
       </CardHeader>
       <ChartContainer config={chartConfig} className="h-full">
-        <ScatterChart margin={{ top: 20, right: 40, bottom: 20 }}>
+        <ComposedChart margin={{ top: 20, right: 40, bottom: 20 }}>
           <CartesianGrid />
           <XAxis
             dataKey={selectedAxis}
@@ -132,7 +150,7 @@ export function VolChart({
             tickCount={10}
           />
           <YAxis
-            dataKey={"markIV"}
+            dataKey={"impliedVolatility"}
             type="number"
             domain={["dataMin", "dataMax"]}
             tickLine={false}
@@ -140,11 +158,14 @@ export function VolChart({
             tickFormatter={formatYAxisTick}
             tickCount={5}
           />
+
+          {/* Separate Scatter components with their own data */}
           {callData && (
             <Scatter
               name="Calls"
               data={callData}
-              fill="var(--chart-1)"
+              dataKey="impliedVolatility"
+              fill="green"
               shape="circle"
             />
           )}
@@ -152,13 +173,27 @@ export function VolChart({
             <Scatter
               name="Puts"
               data={putData}
-              fill="var(--chart-5)"
+              dataKey="impliedVolatility"
+              fill="red"
               shape="circle"
             />
           )}
+
+          {/* SVI Line - if you want to show the fitted curve */}
+          {sviPoints && (
+            <Line
+              data={sviPoints}
+              dataKey="impliedVolatility"
+              stroke="blue"
+              dot={false}
+              activeDot={false}
+              legendType="none"
+            />
+          )}
+
+          <Legend />
           <ChartTooltip content={<CustomTooltipContent />} />
-          <ChartLegend content={<ChartLegendContent />} />
-        </ScatterChart>
+        </ComposedChart>
       </ChartContainer>
     </Card>
   );

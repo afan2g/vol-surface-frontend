@@ -23,7 +23,7 @@ type SingleOptionData = {
   bsmPrice: number;
   daysToExpiry: number;
   logMoneyness: number;
-  markIV: number;
+  impliedVolatility: number;
   moneyness: number;
   markPrice: number;
   riskFreeRate: number;
@@ -32,7 +32,6 @@ type SingleOptionData = {
   symbol: string;
   timeToExpiry: number;
 };
-
 type OptionResponse = {
   C?: SingleOptionData[];
   P?: SingleOptionData[];
@@ -135,9 +134,8 @@ export default function Layout() {
           throw new Error("Network response was not ok");
         }
         const data = await optionChainResponse.json();
-        const jsonResp =
-          await sviResponse.json();
-        
+        const jsonResp = await sviResponse.json();
+
         setOptionData(data);
         const parameterization_type = jsonResp.parameterization_type;
         const params = jsonResp.params;
@@ -175,7 +173,7 @@ export default function Layout() {
         />
         <ResizablePanelGroup direction="horizontal">
           <SidebarTrigger />
-          <ResizablePanel minSize={40}>
+          <ResizablePanel minSize={25}>
             <ScrollArea className=" h-[calc(100vh)] px-2 ">
               {optionData.C && (
                 <OptionChainTable optionData={optionData.C} caption="Call" />

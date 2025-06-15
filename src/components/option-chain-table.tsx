@@ -14,7 +14,7 @@ type SingleOptionData = {
   bsmPrice: number;
   daysToExpiry: number;
   logMoneyness: number;
-  markIV: number;
+  impliedVolatility: number;
   moneyness: number;
   markPrice: number;
   riskFreeRate: number;
@@ -97,7 +97,7 @@ export function OptionChainTable({
                 {dollarFormatter.format(option.markPrice)}
               </TableCell>
               <TableCell className="text-right">
-                {(option.markIV * 100).toFixed(2)}
+                {(option.impliedVolatility * 100).toFixed(2)}
               </TableCell>
               <TableCell className="text-right">
                 {option.logMoneyness.toFixed(3)}

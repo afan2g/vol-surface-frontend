@@ -86,9 +86,9 @@ export function AppSidebar({
             placeholder={
               asset
                 ? `${enabledDates.length} ${
-                    enabledDates.length === 1 ? "Expiry" : "Expiries"
+                    enabledDates.length === 1 ? "Expiry" : "Expiries available"
                   }`
-                : "Expiry date"
+                : "Select an asset first"
             }
           />
         </SidebarMenuItem>
