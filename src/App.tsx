@@ -10,6 +10,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "./components/ui/resizable";
+import { OptionInfoCard } from "./components/option-info-card";
 const HOST = import.meta.env.VITE_API_SERVER_URL;
 
 type SviPoint = {
@@ -31,11 +32,14 @@ type SingleOptionData = {
   strikePrice: number;
   symbol: string;
   timeToExpiry: number;
+  forwardPrice: number;
 };
 type OptionResponse = {
+  lastOptionUpdate: number;
+  lastExchangeUpdate: number;
   C?: SingleOptionData[];
   P?: SingleOptionData[];
-};
+} | null;
 
 type SelectedOption = {
   asset?: string;
@@ -59,10 +63,11 @@ export default function Layout() {
   const [expiryObject, setExpiryObject] = useState<
     Record<string, [number, string][]>
   >({});
-  const [optionData, setOptionData] = useState<OptionResponse>({});
+  const [optionData, setOptionData] = useState<OptionResponse>(null);
   const [sviType, setSviType] = useState<"natural" | "raw">("natural");
-  const [sviParams, setSviParams] = useState<number[]>([]);
-  const [sviPoints, setSviPoints] = useState<SviPoint[]>([]);
+  const [sviParams, setSviParams] = useState<number[] | null>(null);
+  const [sviPoints, setSviPoints] = useState<SviPoint[] | null>(null);
+  const [option, setOption] = useState<SelectedOption | null>(null);
 
   useEffect(() => {
     fetchAssets();
@@ -103,11 +108,7 @@ export default function Layout() {
             body: JSON.stringify({
               asset: selectedOption.asset,
               expiry: toYYMMDD(selectedOption.expiryDate!),
-              side: selectedOption.isPutsSelected
-                ? selectedOption.isCallsSelected
-                  ? "A"
-                  : "P"
-                : "C",
+              side: "A",
             }),
           }),
           fetch(`${HOST}/svi_curve`, {
@@ -118,11 +119,7 @@ export default function Layout() {
             body: JSON.stringify({
               asset: selectedOption.asset,
               expiry: toYYMMDD(selectedOption.expiryDate!),
-              side: selectedOption.isPutsSelected
-                ? selectedOption.isCallsSelected
-                  ? "A"
-                  : "P"
-                : "C",
+              side: "A",
               parameterization_type: sviType,
             }),
           }),
@@ -160,7 +157,17 @@ export default function Layout() {
 
   const handleViewDetails = (selectedOption: SelectedOption) => {
     console.log("Selected option for details:", selectedOption);
+    setOption(selectedOption);
     fetchOptionsData(selectedOption);
+  };
+
+  const handleRefresh = async () => {
+    console.log("Refreshing option data for:", option);
+    if (option) {
+      await Promise.all([fetchOptionsData(option), fetchAssets()]);
+    } else {
+      console.warn("No option selected to refresh data for.");
+    }
   };
 
   return (
@@ -174,23 +181,41 @@ export default function Layout() {
         <ResizablePanelGroup direction="horizontal">
           <SidebarTrigger />
           <ResizablePanel minSize={25}>
-            <ScrollArea className=" h-[calc(100vh)] px-2 ">
-              {optionData.C && (
-                <OptionChainTable optionData={optionData.C} caption="Call" />
+            <div className="flex flex-col h-screen">
+              {optionData && (
+                <div className="flex-shrink-0 px-2 pt-2">
+                  <OptionInfoCard
+                    optionsData={optionData}
+                    selectedOption={option || undefined}
+                    spotPrices={assetSpotPrices}
+                    onRefresh={handleRefresh}
+                  />
+                </div>
               )}
-              {optionData.P && (
-                <OptionChainTable optionData={optionData.P} caption="Put" />
-              )}
-            </ScrollArea>
+
+              <div className="flex-1 overflow-hidden">
+                <ScrollArea className="h-full px-2">
+                  {optionData?.C && (
+                    <OptionChainTable
+                      optionData={optionData.C}
+                      caption="Call"
+                    />
+                  )}
+                  {optionData?.P && (
+                    <OptionChainTable optionData={optionData.P} caption="Put" />
+                  )}
+                </ScrollArea>
+              </div>
+            </div>
           </ResizablePanel>
-          {(optionData.C || optionData.P) && (
+          {optionData && (
             <>
               <ResizableHandle />
               <ResizablePanel defaultSize={70}>
                 <VolChart
                   callData={optionData?.C}
                   putData={optionData?.P}
-                  sviPoints={sviPoints}
+                  sviPoints={sviPoints || []}
                 />
               </ResizablePanel>
             </>

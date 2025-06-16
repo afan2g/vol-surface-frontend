@@ -1,11 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-} from "./ui/chart";
+import { ChartContainer, ChartTooltip } from "./ui/chart";
 import type { ChartConfig } from "./ui/chart";
 import {
   CartesianGrid,
@@ -13,8 +8,6 @@ import {
   Legend,
   Line,
   Scatter,
-  ScatterChart,
-  Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
@@ -51,11 +44,11 @@ type VolChartProps = {
 const chartConfig = {
   Calls: {
     label: "Calls",
-    color: "hsl(var(--chart-1))",
+    color: "hsl(var(--chart-2))",
   },
   Puts: {
     label: "Puts",
-    color: "hsl(var(--chart-5))",
+    color: "hsl(var(--chart-3))",
   },
 } satisfies ChartConfig;
 
@@ -98,7 +91,23 @@ export function VolChart({
   sviPoints,
 }: VolChartProps) {
   const [selectedAxis, setSelectedAxis] = useState<string>(xAxis);
+  const [calls, setCalls] = useState<SingleOptionData[]>(callData || []);
+  const [puts, setPuts] = useState<SingleOptionData[]>(putData || []);
+  const [sviPointsData, setSviPointsData] = useState<SVIPoint[]>(
+    sviPoints || []
+  );
 
+  useEffect(() => {
+    if (callData) {
+      setCalls(callData);
+    }
+    if (putData) {
+      setPuts(putData);
+    }
+    if (sviPoints) {
+      setSviPointsData(sviPoints);
+    }
+  }, [callData, putData, sviPoints]);
   const formatXAxisTick = (value: number) => {
     if (selectedAxis === "logMoneyness") {
       return value.toFixed(2).toString();
@@ -122,9 +131,7 @@ export function VolChart({
   };
 
   const handleAxisChange = (value: string) => {
-    console.log("Selected axis:", value);
     setSelectedAxis(value);
-    console.log(sviPoints);
   };
 
   return (
@@ -165,7 +172,7 @@ export function VolChart({
               name="Calls"
               data={callData}
               dataKey="impliedVolatility"
-              fill="green"
+              fill="var(--chart-2)"
               shape="circle"
             />
           )}
@@ -174,7 +181,7 @@ export function VolChart({
               name="Puts"
               data={putData}
               dataKey="impliedVolatility"
-              fill="red"
+              fill="var(--chart-3)"
               shape="circle"
             />
           )}
@@ -184,7 +191,7 @@ export function VolChart({
             <Line
               data={sviPoints}
               dataKey="impliedVolatility"
-              stroke="blue"
+              stroke="var(--chart-4)"
               dot={false}
               activeDot={false}
               legendType="none"

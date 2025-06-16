@@ -31,28 +31,21 @@ export function AppSidebar({
   const [asset, setAsset] = useState<string | undefined>(undefined);
   const [expiryDate, setExpiryDate] = useState<Date | undefined>(undefined);
   const [enabledDates, setEnabledDates] = useState<Date[]>([]);
-  const [isPutsSelected, setIsPutsSelected] = useState<boolean>(true);
-  const [isCallsSelected, setIsCallsSelected] = useState<boolean>(true);
 
   const { toggleSidebar } = useSidebar();
   const handleAssetSelected = (value: string) => {
-    console.log("Selected asset:", value);
     setAsset(value);
     setExpiryDate(undefined);
     const dates = availableExpiries[value] ?? [];
-    console.log("Available expiries for asset:", dates);
     setEnabledDates(
       dates.map((date) => {
-        console.log("Date:", date);
         const newDate = new Date(date[0]); // Convert Unix timestamp to Date
-        console.log("Converted date:", newDate);
         return newDate;
       })
     );
   };
 
   const handleDateSelected = (date: Date) => {
-    console.log("Selected date:", date);
     setExpiryDate(date);
   };
 
@@ -61,8 +54,6 @@ export function AppSidebar({
       onViewDetails({
         asset,
         expiryDate,
-        isPutsSelected,
-        isCallsSelected,
       });
     }
     toggleSidebar();
@@ -92,33 +83,18 @@ export function AppSidebar({
             }
           />
         </SidebarMenuItem>
-        <SidebarMenuItem className="flex items-center justify-between gap-2 px-2">
-          <Toggle
-            className="w-full"
-            variant="outline"
-            onPressedChange={() => setIsPutsSelected(!isPutsSelected)}
-            defaultPressed={true}
-          >
-            Puts
-          </Toggle>
-          <Toggle
-            className="w-full"
-            variant="outline"
-            onPressedChange={() => setIsCallsSelected(!isCallsSelected)}
-            defaultPressed={true}
-          >
-            Calls
-          </Toggle>
-        </SidebarMenuItem>
+        <SidebarMenuItem className="flex items-center justify-between gap-2 px-2"></SidebarMenuItem>
         <SidebarMenuItem className="px-2 w-full">
           <Button
             className="w-full"
-            disabled={
-              !asset || !expiryDate || (!isPutsSelected && !isCallsSelected)
-            }
+            disabled={!asset || !expiryDate}
             onClick={handleViewDetails}
           >
-            View Details
+            {!asset
+              ? "Select an asset"
+              : !expiryDate
+              ? "Select expiry date"
+              : "View Details"}
           </Button>
         </SidebarMenuItem>
       </SidebarMenu>
