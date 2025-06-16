@@ -55,8 +55,8 @@ export function OptionInfoCard({
 
   const handleTick = (timedelta: CountdownTimeDelta) => {
     console.log("Countdown ticked");
-    if (timedelta.minutes >= 1 && timedelta.seconds > 10) {
-      console.log("1 minute");
+    if (timedelta.seconds >= 5) {
+      console.log("5 seconds");
       onRefresh?.();
     }
   };
@@ -126,21 +126,21 @@ export function OptionInfoCard({
             />
           </div>
           <div className="flex flex-row items-center justify-between">
-            <span>SVI Paramterization: {sviType}</span>
+            <span>SVI paramterization: {sviType}</span>
             <span>
-              {sviType === "natural" ? "delta" : "a"}: {sviParams?.[0]}
+              {sviType === "natural" ? "∆" : "a"}: {sviParams?.[0].toFixed(4)}
             </span>
             <span>
-              {sviType === "natural" ? "mu" : "b"}: {sviParams?.[1]}
+              {sviType === "natural" ? "µ" : "b"}: {sviParams?.[1].toFixed(4)}
             </span>
             <span>
-              {sviType === "natural" ? "rho" : "rho"}: {sviParams?.[2]}
+              {sviType === "natural" ? "ρ" : "ρ"}: {sviParams?.[2].toFixed(4)}
             </span>
             <span>
-              {sviType === "natural" ? "omega" : "m"}: {sviParams?.[3]}
+              {sviType === "natural" ? "ω" : "m"}: {sviParams?.[3].toFixed(4)}
             </span>
             <span>
-              {sviType === "natural" ? "zeta" : "sigma"}: {sviParams?.[4]}
+              {sviType === "natural" ? "ζ" : "σ"}: {sviParams?.[4].toFixed(4)}
             </span>
           </div>
         </div>

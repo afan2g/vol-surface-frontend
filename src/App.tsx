@@ -189,6 +189,7 @@ export default function Layout() {
                     selectedOption={option || undefined}
                     spotPrices={assetSpotPrices}
                     onRefresh={handleRefresh}
+                    sviParams={sviParams || undefined}
                   />
                 </div>
               )}
