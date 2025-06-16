@@ -125,6 +125,24 @@ export function OptionInfoCard({
               )}
             />
           </div>
+          <div className="flex flex-row items-center justify-between">
+            <span>SVI Paramterization: {sviType}</span>
+            <span>
+              {sviType === "natural" ? "delta" : "a"}: {sviParams?.[0]}
+            </span>
+            <span>
+              {sviType === "natural" ? "mu" : "b"}: {sviParams?.[1]}
+            </span>
+            <span>
+              {sviType === "natural" ? "rho" : "rho"}: {sviParams?.[2]}
+            </span>
+            <span>
+              {sviType === "natural" ? "omega" : "m"}: {sviParams?.[3]}
+            </span>
+            <span>
+              {sviType === "natural" ? "zeta" : "sigma"}: {sviParams?.[4]}
+            </span>
+          </div>
         </div>
       </CardContent>
     </Card>

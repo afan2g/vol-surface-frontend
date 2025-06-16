@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { ChartContainer, ChartTooltip } from "./ui/chart";
 import type { ChartConfig } from "./ui/chart";
@@ -91,23 +91,7 @@ export function VolChart({
   sviPoints,
 }: VolChartProps) {
   const [selectedAxis, setSelectedAxis] = useState<string>(xAxis);
-  const [calls, setCalls] = useState<SingleOptionData[]>(callData || []);
-  const [puts, setPuts] = useState<SingleOptionData[]>(putData || []);
-  const [sviPointsData, setSviPointsData] = useState<SVIPoint[]>(
-    sviPoints || []
-  );
 
-  useEffect(() => {
-    if (callData) {
-      setCalls(callData);
-    }
-    if (putData) {
-      setPuts(putData);
-    }
-    if (sviPoints) {
-      setSviPointsData(sviPoints);
-    }
-  }, [callData, putData, sviPoints]);
   const formatXAxisTick = (value: number) => {
     if (selectedAxis === "logMoneyness") {
       return value.toFixed(2).toString();
