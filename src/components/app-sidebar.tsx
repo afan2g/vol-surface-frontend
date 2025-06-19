@@ -11,16 +11,16 @@ import { Button } from "./ui/button";
 import { useState } from "react";
 
 type SelectedOption = {
-  asset?: string;
-  expiryDate?: Date;
+  asset: string;
+  expiryDate: Date;
   isPutsSelected?: boolean;
   isCallsSelected?: boolean;
 };
 type SidebarProps = {
-  onViewDetails?: (option: SelectedOption) => void;
-  availableAssets?: string[];
-  spotPrices?: Record<string, string>;
-  availableExpiries: Record<string, [number, string][]>;
+  onViewDetails: (option: SelectedOption) => void;
+  availableAssets: string[];
+  spotPrices: Record<string, string>;
+  availableExpiries: Record<string, [string, number][]>;
 };
 export function AppSidebar({
   onViewDetails,
@@ -38,8 +38,7 @@ export function AppSidebar({
     const dates = availableExpiries[value] ?? [];
     setEnabledDates(
       dates.map((date) => {
-        const newDate = new Date(date[0]); // Convert Unix timestamp to Date
-        return newDate;
+        return new Date(date[1]);
       })
     );
   };
@@ -49,13 +48,13 @@ export function AppSidebar({
   };
 
   const handleViewDetails = () => {
-    if (onViewDetails) {
+    if (asset && expiryDate && onViewDetails) {
       onViewDetails({
         asset,
         expiryDate,
       });
+      toggleSidebar();
     }
-    toggleSidebar();
   };
 
   return (

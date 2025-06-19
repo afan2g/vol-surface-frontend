@@ -59,7 +59,6 @@ export function Combobox(props: ComboboxProps) {
   }));
   const handleSelect = (index: number) => {
     setAsset(assetsWithPrices[index].value);
-    console.log("Selected asset:", assetsWithPrices[index]);
     setOpen(false);
     if (onItemSelected) {
       onItemSelected(assetsWithPrices[index].value);

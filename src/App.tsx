@@ -42,11 +42,13 @@ type OptionResponse = {
 } | null;
 
 type SelectedOption = {
-  asset?: string;
-  expiryDate?: Date;
+  asset: string;
+  expiryDate: Date;
   isPutsSelected?: boolean;
   isCallsSelected?: boolean;
 };
+
+
 
 function toYYMMDD(date: Date): string {
   const yy = String(date.getFullYear()).slice(-2);
@@ -61,7 +63,7 @@ export default function Layout() {
     Record<string, string>
   >({});
   const [expiryObject, setExpiryObject] = useState<
-    Record<string, [number, string][]>
+    Record<string, [string, number][]>
   >({});
   const [optionData, setOptionData] = useState<OptionResponse>(null);
   const [sviType, setSviType] = useState<"natural" | "raw">("natural");
@@ -89,7 +91,6 @@ export default function Layout() {
       setAvailableAssets(assetsData.assets);
       setAssetSpotPrices(assetsData.spot_prices);
       setExpiryObject(expiriesData);
-      console.log("Available assets:", assetsData);
       console.log("Available expiries:", expiriesData);
     } catch (error) {
       console.error("Error fetching assets:", error);
@@ -99,6 +100,7 @@ export default function Layout() {
   const fetchOptionsData = async (selectedOption: SelectedOption) => {
     if (selectedOption) {
       try {
+        console.log("Fetching options data for:", selectedOption);
         const [optionChainResponse, sviResponse] = await Promise.all([
           fetch(`${HOST}/option_chain`, {
             method: "POST",
@@ -140,12 +142,7 @@ export default function Layout() {
         setSviType(parameterization_type);
         setSviParams(params);
         setSviPoints(points);
-        console.log("SVI Type:", parameterization_type);
-        console.log("SVI Params:", params);
-        console.log("SVI Points:", points);
-        console.log(sviParams);
         console.log(availableAssets);
-        console.log("Options chain data:", data);
       } catch (error) {
         console.error("Error fetching options chain:", error);
       } finally {
@@ -157,12 +154,21 @@ export default function Layout() {
 
   const handleViewDetails = (selectedOption: SelectedOption) => {
     console.log("Selected option for details:", selectedOption);
-    setOption(selectedOption);
-    fetchOptionsData(selectedOption);
+    const yymmdd = toYYMMDD(selectedOption.expiryDate!);
+    const expiryArr = expiryObject[selectedOption.asset] || [];
+    const found = expiryArr.find(val => val[0] === yymmdd);
+    console.log("Found expiry:", found);
+    const expiryTimestamp = found ? found[1] : undefined;
+    const date = expiryTimestamp ? new Date(expiryTimestamp) : undefined;
+    if (date) {
+      setOption({ ...selectedOption, expiryDate: date });
+      fetchOptionsData({ ...selectedOption, expiryDate: date });
+    } else {
+      console.warn("Expiry date is undefined, cannot set option.");
+    }
   };
 
   const handleRefresh = async () => {
-    console.log("Refreshing option data for:", option);
     if (option) {
       await Promise.all([fetchOptionsData(option), fetchAssets()]);
     } else {
@@ -175,6 +181,7 @@ export default function Layout() {
       <SidebarProvider>
         <AppSidebar
           onViewDetails={handleViewDetails}
+          availableAssets={availableAssets}
           spotPrices={assetSpotPrices}
           availableExpiries={expiryObject}
         />
