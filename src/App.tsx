@@ -228,7 +228,7 @@ export default function Layout() {
     // console.log("Current SVI type:", sviType);
     // console.log("Handling SVI change to:", value);
     if (value === sviType) {
-      console.log("SVI type is the same, no need to fetch again.");
+      // console.log("SVI type is the same, no need to fetch again.");
       return;
     }
     // console.log("Changing SVI type to:", value);
@@ -239,7 +239,7 @@ export default function Layout() {
           option.expiryDate!,
           value
         );
-        console.log("Fetched SVI data. params:", sviData.params);
+        // console.log("Fetched SVI data. params:", sviData.params);
         setSviType(sviData.parameterization_type);
         setSviParams(sviData.params);
         setSviPoints(sviData.points);

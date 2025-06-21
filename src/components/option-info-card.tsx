@@ -18,6 +18,7 @@ import {
   naturalSVIVol,
   rawSVIVol,
 } from "@/utils/option-formulas";
+import { Input } from "./ui/input";
 type SingleOptionData = {
   bsmPrice: number;
   daysToExpiry: number;
@@ -131,7 +132,6 @@ export function OptionInfoCard({
     }
   };
   const handleValueChange = (value: number[]) => {
-    console.log("Slider value changed:", value);
     setSliderValue(value[0]);
     const strikePrice = value[0];
     const forwardPrice = optionsData.forwardPrice;
@@ -218,6 +218,11 @@ export function OptionInfoCard({
       });
     }
   }, [optionsData]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value.replace(/[^0-9.-]+/g, ""));
+    setSliderValue(value);
+  };
 
   return (
     <Card>
@@ -310,13 +315,20 @@ export function OptionInfoCard({
             </span>
           </div>
         </div>
-        <Slider
-          min={minStrikePrice}
-          max={maxStrikePrice}
-          step={sliderStep}
-          value={[sliderValue]}
-          onValueChange={handleValueChange}
-        />
+        <div className="flex flex-row items-center justify-between mt-4">
+          <Slider
+            min={minStrikePrice}
+            max={maxStrikePrice}
+            step={sliderStep}
+            value={[sliderValue]}
+            onValueChange={handleValueChange}
+          />
+          <Input
+            className="mx-2 w-1/6"
+            value={dollarFormatter.format(sliderValue)}
+            onChangeCapture={handleInputChange}
+          />
+        </div>
         <div className="flex flex-col text-sm text-gray-500 mt-2">
           <span>
             Selected Strike Price: {dollarFormatter.format(sliderValue)}
@@ -329,11 +341,11 @@ export function OptionInfoCard({
             Implied Volatility: {calculatedOption?.impliedVolatility.toFixed(4)}
           </span>
           <span>
-            BSM Put Premium:{" "}
+            BSM Call Premium:{" "}
             {dollarFormatter.format(calculatedOption?.callPremium ?? 0)}
           </span>
           <span>
-            BSM Call Premium:{" "}
+            BSM Put Premium:{" "}
             {dollarFormatter.format(calculatedOption?.putPremium ?? 0)}
           </span>
         </div>

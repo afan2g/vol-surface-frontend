@@ -45,7 +45,6 @@ export function AppSidebar({
 
   const handleDateSelected = (date: Date) => {
     setExpiryDate(date);
-    console.log("Selected expiry date:", date);
   };
 
   const handleViewDetails = () => {
