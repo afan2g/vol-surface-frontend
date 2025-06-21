@@ -41,6 +41,7 @@ type VolChartProps = {
   putData?: SingleOptionData[];
   xAxis?: "logMoneyness" | "strikePrice" | "moneyness";
   sviPoints?: SVIPoint[];
+  customPoint?: SVIPoint;
 };
 
 const chartConfig = {
@@ -100,6 +101,7 @@ export function VolChart({
   putData,
   xAxis = "logMoneyness",
   sviPoints,
+  customPoint,
 }: VolChartProps) {
   const [selectedAxis, setSelectedAxis] = useState<string>(xAxis);
 
@@ -190,6 +192,17 @@ export function VolChart({
               dot={false}
               activeDot={false}
               legendType="none"
+            />
+          )}
+
+          {/* Custom Point */}
+          {customPoint && (
+            <Scatter
+              name="Custom Point"
+              data={[customPoint]}
+              dataKey="impliedVolatility"
+              fill="var(--chart-5)"
+              shape="cross"
             />
           )}
 

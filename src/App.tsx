@@ -39,6 +39,12 @@ type SingleOptionData = {
 type OptionResponse = {
   lastOptionUpdate: number;
   lastExchangeUpdate: number;
+  asset: string;
+  expiry: string;
+  spotPrice: number;
+  timeToExpiry: number;
+  forwardPrice: number;
+  riskFreeRate: number;
   C?: SingleOptionData[];
   P?: SingleOptionData[];
 } | null;
@@ -70,94 +76,125 @@ export default function Layout() {
   const [sviParams, setSviParams] = useState<number[] | null>(null);
   const [sviPoints, setSviPoints] = useState<SviPoint[] | null>(null);
   const [option, setOption] = useState<SelectedOption | null>(null);
-
+  const [customOption, setCustomOption] = useState<SviPoint | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   useEffect(() => {
-    fetchAssets();
+    const fetchData = async () => {
+      try {
+        await Promise.all([fetchAssets(), fetchExpiries()]);
+      } catch (error) {
+        console.error("Error fetching initial data:", error);
+      }
+    };
+    fetchData();
   }, []);
 
   const fetchAssets = async () => {
     try {
-      const [assetsResponse, expiriesResponse] = await Promise.all([
-        fetch(`${HOST}/assets`),
-        fetch(`${HOST}/expiries`),
-      ]);
-      if (!assetsResponse.ok || !expiriesResponse.ok) {
+      const assetsResponse = await fetch(`${HOST}/assets`);
+      if (!assetsResponse.ok) {
         throw new Error("Network response was not ok");
       }
-      const [assetsData, expiriesData] = await Promise.all([
-        assetsResponse.json(),
-        expiriesResponse.json(),
-      ]);
+      const assetsData = await assetsResponse.json();
       setAvailableAssets(assetsData.assets);
       setAssetSpotPrices(assetsData.spot_prices);
-      setExpiryObject(expiriesData);
-      console.log("Available expiries:", expiriesData);
+      // console.log("Available assets:", assetsData.assets);
+      // console.log("Asset spot prices:", assetsData.spot_prices);
     } catch (error) {
       console.error("Error fetching assets:", error);
     }
   };
 
+  const fetchExpiries = async () => {
+    try {
+      const expiriesResponse = await fetch(`${HOST}/expiries`);
+      if (!expiriesResponse.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const expiriesData = await expiriesResponse.json();
+      setExpiryObject(expiriesData);
+      // console.log("Available expiries:", expiriesData);
+    } catch (error) {
+      console.error("Error fetching expiries:", error);
+    }
+  };
   const fetchOptionsData = async (selectedOption: SelectedOption) => {
     if (selectedOption) {
       try {
-        console.log("Fetching options data for:", selectedOption);
-        const [optionChainResponse, sviResponse] = await Promise.all([
-          fetch(`${HOST}/option_chain`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              asset: selectedOption.asset,
-              expiry: toYYMMDD(selectedOption.expiryDate!),
-              side: "A",
-            }),
-          }),
-          fetch(`${HOST}/svi_curve`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              asset: selectedOption.asset,
-              expiry: toYYMMDD(selectedOption.expiryDate!),
-              side: "A",
-              parameterization_type: sviType,
-            }),
-          }),
+        // console.log("Fetching options data for:", selectedOption);
+        const [optionChainData, sviData] = await Promise.all([
+          fetchOptionsChain(selectedOption.asset, selectedOption.expiryDate!),
+          fetchSviCurve(
+            selectedOption.asset,
+            selectedOption.expiryDate!,
+            sviType
+          ),
         ]);
-        if (!optionChainResponse.ok) {
-          throw new Error("Network response was not ok");
-        }
-        if (!sviResponse.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const data = await optionChainResponse.json();
-        const jsonResp = await sviResponse.json();
 
-        setOptionData(data);
-        const parameterization_type = jsonResp.parameterization_type;
-        const params = jsonResp.params;
-        const points = jsonResp.points;
+        setOptionData(optionChainData);
+        const parameterization_type = sviData.parameterization_type;
+        const params = sviData.params;
+        const points = sviData.points;
         setSviType(parameterization_type);
         setSviParams(params);
         setSviPoints(points);
-        console.log(availableAssets);
+        // console.log(availableAssets);
       } catch (error) {
-        console.error("Error fetching options chain:", error);
+        console.error("Error fetching options data:", error);
       } finally {
       }
     } else {
       console.warn("No selected option to fetch data for.");
     }
   };
+  const fetchOptionsChain = async (asset: string, expiry: Date) => {
+    const response = await fetch(`${HOST}/option_chain`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        asset: asset,
+        expiry: toYYMMDD(expiry),
+        side: "A",
+      }),
+    });
+    if (!response.ok) {
+      throw new Error("Options chain fetch failed");
+    }
+    const data = await response.json();
+    return data;
+  };
 
+  const fetchSviCurve = async (
+    asset: string,
+    expiry: Date,
+    sviType: "natural" | "raw"
+  ) => {
+    const response = await fetch(`${HOST}/svi_curve`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        asset,
+        expiry: toYYMMDD(expiry),
+        side: "A",
+        parameterization_type: sviType,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch SVI curve data");
+    }
+    const data = await response.json();
+    return data;
+  };
   const handleViewDetails = (selectedOption: SelectedOption) => {
-    console.log("Selected option for details:", selectedOption);
+    // console.log("Selected option for details:", selectedOption);
     const yymmdd = toYYMMDD(selectedOption.expiryDate!);
     const expiryArr = expiryObject[selectedOption.asset] || [];
     const found = expiryArr.find((val) => val[0] === yymmdd);
-    console.log("Found expiry:", found);
+    // console.log("Found expiry:", found);
     const expiryTimestamp = found ? found[1] : undefined;
     const date = expiryTimestamp ? new Date(expiryTimestamp) : undefined;
     if (date) {
@@ -169,11 +206,51 @@ export default function Layout() {
   };
 
   const handleRefresh = async () => {
-    if (option) {
-      await Promise.all([fetchOptionsData(option), fetchAssets()]);
-    } else {
-      console.warn("No option selected to refresh data for.");
+    if (isRefreshing) {
+      console.warn("Refresh already in progress, ignoring request.");
+      return;
     }
+    if (!option) {
+      console.warn("No option selected to refresh data for.");
+      return;
+    }
+    setIsRefreshing(true);
+    try {
+      await Promise.all([fetchOptionsData(option), fetchAssets()]);
+    } catch (error) {
+      console.error("Error during refresh:", error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const handleSviChange = async (value: "natural" | "raw") => {
+    // console.log("Current SVI type:", sviType);
+    // console.log("Handling SVI change to:", value);
+    if (value === sviType) {
+      console.log("SVI type is the same, no need to fetch again.");
+      return;
+    }
+    // console.log("Changing SVI type to:", value);
+    if (option) {
+      try {
+        const sviData = await fetchSviCurve(
+          option.asset,
+          option.expiryDate!,
+          value
+        );
+        console.log("Fetched SVI data. params:", sviData.params);
+        setSviType(sviData.parameterization_type);
+        setSviParams(sviData.params);
+        setSviPoints(sviData.points);
+      } catch (error) {
+        console.error("Error fetching SVI curve:", error);
+      }
+    }
+  };
+
+  const handleCustomOptionChange = (option: SviPoint | null) => {
+    setCustomOption(option);
   };
 
   return (
@@ -197,6 +274,9 @@ export default function Layout() {
                     spotPrices={assetSpotPrices}
                     onRefresh={handleRefresh}
                     sviParams={sviParams || undefined}
+                    sviType={sviType}
+                    onSviChange={handleSviChange}
+                    onOptionChange={handleCustomOptionChange}
                   />
                 </div>
               )}
@@ -224,6 +304,7 @@ export default function Layout() {
                   callData={optionData?.C}
                   putData={optionData?.P}
                   sviPoints={sviPoints || []}
+                  customPoint={customOption || undefined}
                 />
               </ResizablePanel>
             </>

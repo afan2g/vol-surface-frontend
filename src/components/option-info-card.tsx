@@ -1,6 +1,23 @@
+import { useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import Countdown from "react-countdown";
 import type { CountdownTimeDelta } from "react-countdown";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { Slider } from "./ui/slider";
+import { useState } from "react";
+import {
+  calculateBSMPrice,
+  calculateLogMoneyness,
+  calculateMoneyness,
+  naturalSVIVol,
+  rawSVIVol,
+} from "@/utils/option-formulas";
 type SingleOptionData = {
   bsmPrice: number;
   daysToExpiry: number;
@@ -18,6 +35,12 @@ type SingleOptionData = {
 type OptionResponse = {
   lastOptionUpdate: number;
   lastExchangeUpdate: number;
+  asset: string;
+  expiry: string;
+  spotPrice: number;
+  timeToExpiry: number;
+  forwardPrice: number;
+  riskFreeRate: number;
   C?: SingleOptionData[];
   P?: SingleOptionData[];
 };
@@ -29,6 +52,15 @@ type SelectedOption = {
   isCallsSelected?: boolean;
 };
 
+type SVIPoint = {
+  impliedVolatility: number;
+  logMoneyness: number;
+  moneyness: number;
+  strikePrice: number;
+  callPremium: number;
+  putPremium: number;
+};
+
 type SVIParams = number[];
 
 type OptionInfoCardProps = {
@@ -38,7 +70,10 @@ type OptionInfoCardProps = {
   sviType?: "natural" | "raw";
   spotPrices?: Record<string, string>;
   onRefresh?: () => void;
+  onSviChange?: (value: "natural" | "raw") => void;
+  onOptionChange?: (option: SVIPoint | null) => void;
 };
+
 export function OptionInfoCard({
   optionsData,
   selectedOption,
@@ -46,7 +81,45 @@ export function OptionInfoCard({
   sviType = "natural",
   spotPrices = {},
   onRefresh,
+  onSviChange = () => {},
+  onOptionChange = () => {},
 }: OptionInfoCardProps) {
+  const [minStrikePrice, setMinStrikePrice] = useState<number | undefined>(
+    undefined
+  );
+  const [maxStrikePrice, setMaxStrikePrice] = useState<number | undefined>(
+    undefined
+  );
+  const [sliderValue, setSliderValue] = useState<number>(
+    Number(spotPrices[selectedOption?.asset ?? ""] ?? 0)
+  );
+  const [sliderStep, setSliderStep] = useState<number | undefined>(undefined);
+  const [calculatedOption, setCalculatedOption] = useState<SVIPoint | null>(
+    null
+  );
+
+  useEffect(() => {
+    setCalculatedOption(null);
+    onOptionChange(null);
+    if (optionsData.C && optionsData.C.length > 0) {
+      // const strikePrices = optionsData.C.map((option) => option.strikePrice);
+      const minPrice = optionsData.C[0].strikePrice;
+      const maxPrice = optionsData.C[optionsData.C.length - 1].strikePrice;
+      const step = (maxPrice - minPrice) / 100;
+      setMinStrikePrice(minPrice - 20 * step);
+      setMaxStrikePrice(maxPrice + 20 * step);
+      setSliderValue((minPrice + maxPrice) / 2);
+      setSliderStep(step);
+    } else if (optionsData.P && optionsData.P.length > 0) {
+      const minPrice = optionsData.P[0].strikePrice;
+      const maxPrice = optionsData.P[optionsData.P.length - 1].strikePrice;
+      const step = (maxPrice - minPrice) / 100;
+      setMinStrikePrice(minPrice - 20 * step);
+      setMaxStrikePrice(maxPrice + 20 * step);
+      setSliderValue((minPrice + maxPrice) / 2);
+      setSliderStep(step);
+    }
+  }, [optionsData.expiry, optionsData.asset]);
   const dollarFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -57,6 +130,94 @@ export function OptionInfoCard({
       onRefresh?.();
     }
   };
+  const handleValueChange = (value: number[]) => {
+    console.log("Slider value changed:", value);
+    setSliderValue(value[0]);
+    const strikePrice = value[0];
+    const forwardPrice = optionsData.forwardPrice;
+    const logMoneyness = calculateLogMoneyness(strikePrice, forwardPrice);
+    const moneyness = calculateMoneyness(strikePrice, forwardPrice);
+    const timeToExpiry = optionsData.timeToExpiry;
+    const impliedVolatility =
+      sviType === "natural"
+        ? naturalSVIVol(
+            strikePrice,
+            forwardPrice,
+            sviParams || [],
+            timeToExpiry
+          )
+        : rawSVIVol(strikePrice, forwardPrice, sviParams || [], timeToExpiry);
+    const callPrice = calculateBSMPrice({
+      strikePrice,
+      spotPrice: optionsData.spotPrice,
+      timeToExpiry,
+      riskFreeRate: optionsData.riskFreeRate,
+      impliedVolatility,
+      isCall: true,
+    });
+    const putPrice = calculateBSMPrice({
+      strikePrice,
+      spotPrice: optionsData.spotPrice,
+      timeToExpiry,
+      riskFreeRate: optionsData.riskFreeRate,
+      impliedVolatility,
+      isCall: false,
+    });
+
+    const newOptionData: SVIPoint = {
+      impliedVolatility,
+      logMoneyness,
+      moneyness,
+      strikePrice,
+      callPremium: callPrice,
+      putPremium: putPrice,
+    };
+    setCalculatedOption(newOptionData);
+    onOptionChange(newOptionData);
+  };
+
+  useEffect(() => {
+    if (calculatedOption) {
+      const forwardPrice = optionsData.forwardPrice;
+      const strikePrice = calculatedOption.strikePrice;
+      const timeToExpiry = optionsData.timeToExpiry;
+      const logMoneyness = calculateLogMoneyness(strikePrice, forwardPrice);
+      const moneyness = calculateMoneyness(strikePrice, forwardPrice);
+      const impliedVolatility =
+        sviType === "natural"
+          ? naturalSVIVol(
+              strikePrice,
+              forwardPrice,
+              sviParams || [],
+              timeToExpiry
+            )
+          : rawSVIVol(strikePrice, forwardPrice, sviParams || [], timeToExpiry);
+      const callPrice = calculateBSMPrice({
+        strikePrice,
+        spotPrice: optionsData.spotPrice,
+        timeToExpiry: optionsData.timeToExpiry,
+        riskFreeRate: optionsData.riskFreeRate,
+        impliedVolatility: impliedVolatility,
+        isCall: true,
+      });
+      const putPrice = calculateBSMPrice({
+        strikePrice,
+        spotPrice: optionsData.spotPrice,
+        timeToExpiry: optionsData.timeToExpiry,
+        riskFreeRate: optionsData.riskFreeRate,
+        impliedVolatility: impliedVolatility,
+        isCall: false,
+      });
+      setCalculatedOption({
+        impliedVolatility,
+        logMoneyness,
+        moneyness,
+        strikePrice,
+        callPremium: callPrice,
+        putPremium: putPrice,
+      });
+    }
+  }, [optionsData]);
 
   return (
     <Card>
@@ -123,7 +284,15 @@ export function OptionInfoCard({
             />
           </div>
           <div className="flex flex-row items-center justify-between">
-            <span>SVI paramterization: {sviType}</span>
+            <Select value={sviType} onValueChange={onSviChange}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="natural">Natural SVI</SelectItem>
+                <SelectItem value="raw">Raw SVI</SelectItem>
+              </SelectContent>
+            </Select>
             <span>
               {sviType === "natural" ? "∆" : "a"}: {sviParams?.[0].toFixed(4)}
             </span>
@@ -140,6 +309,33 @@ export function OptionInfoCard({
               {sviType === "natural" ? "ζ" : "σ"}: {sviParams?.[4].toFixed(4)}
             </span>
           </div>
+        </div>
+        <Slider
+          min={minStrikePrice}
+          max={maxStrikePrice}
+          step={sliderStep}
+          value={[sliderValue]}
+          onValueChange={handleValueChange}
+        />
+        <div className="flex flex-col text-sm text-gray-500 mt-2">
+          <span>
+            Selected Strike Price: {dollarFormatter.format(sliderValue)}
+          </span>
+          <span>Moneyness (F/K): {calculatedOption?.moneyness.toFixed(4)}</span>
+          <span>
+            Log Moneyness: {calculatedOption?.logMoneyness.toFixed(4)}
+          </span>
+          <span>
+            Implied Volatility: {calculatedOption?.impliedVolatility.toFixed(4)}
+          </span>
+          <span>
+            BSM Put Premium:{" "}
+            {dollarFormatter.format(calculatedOption?.callPremium ?? 0)}
+          </span>
+          <span>
+            BSM Call Premium:{" "}
+            {dollarFormatter.format(calculatedOption?.putPremium ?? 0)}
+          </span>
         </div>
       </CardContent>
     </Card>
