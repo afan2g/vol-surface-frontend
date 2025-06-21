@@ -47,7 +47,6 @@ export function OptionInfoCard({
   spotPrices = {},
   onRefresh,
 }: OptionInfoCardProps) {
-  // console.log("Rendering OptionInfoCard with optionsData:", optionsData);
   const dollarFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
