@@ -18,6 +18,8 @@ type SviPoint = {
   logMoneyness: number;
   moneyness: number;
   strikePrice: number;
+  callPremium: number;
+  putPremium: number;
 };
 
 type SingleOptionData = {
@@ -89,8 +91,8 @@ export default function Layout() {
       setAvailableAssets(assetsData.assets);
       setAssetSpotPrices(assetsData.spot_prices);
       setExpiryObject(expiriesData);
-      console.log("Available assets:", assetsData);
-      console.log("Available expiries:", expiriesData);
+      // console.log("Available assets:", assetsData);
+      // console.log("Available expiries:", expiriesData);
     } catch (error) {
       console.error("Error fetching assets:", error);
     }
@@ -140,12 +142,12 @@ export default function Layout() {
         setSviType(parameterization_type);
         setSviParams(params);
         setSviPoints(points);
-        console.log("SVI Type:", parameterization_type);
-        console.log("SVI Params:", params);
-        console.log("SVI Points:", points);
-        console.log(sviParams);
+        // console.log("SVI Type:", parameterization_type);
+        // console.log("SVI Params:", params);
+        // console.log("SVI Points:", points);
+        // console.log(sviParams);
         console.log(availableAssets);
-        console.log("Options chain data:", data);
+        // console.log("Options chain data:", data);
       } catch (error) {
         console.error("Error fetching options chain:", error);
       } finally {
@@ -162,7 +164,7 @@ export default function Layout() {
   };
 
   const handleRefresh = async () => {
-    console.log("Refreshing option data for:", option);
+    // console.log("Refreshing option data for:", option);
     if (option) {
       await Promise.all([fetchOptionsData(option), fetchAssets()]);
     } else {

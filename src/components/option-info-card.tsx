@@ -47,16 +47,14 @@ export function OptionInfoCard({
   spotPrices = {},
   onRefresh,
 }: OptionInfoCardProps) {
-  console.log("Rendering OptionInfoCard with optionsData:", optionsData);
+  // console.log("Rendering OptionInfoCard with optionsData:", optionsData);
   const dollarFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
   });
 
   const handleTick = (timedelta: CountdownTimeDelta) => {
-    console.log("Countdown ticked");
     if (timedelta.seconds >= 5) {
-      console.log("5 seconds");
       onRefresh?.();
     }
   };

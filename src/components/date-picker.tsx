@@ -28,6 +28,7 @@ export function DatePicker({
     setOpen(false);
     if (onDateSelected && selectedDate) {
       onDateSelected(selectedDate);
+      console.log("Selected date:", selectedDate);
     }
   };
 

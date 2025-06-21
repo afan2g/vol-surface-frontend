@@ -32,6 +32,8 @@ type SVIPoint = {
   logMoneyness: number;
   moneyness: number;
   strikePrice: number;
+  callPremium: number;
+  putPremium: number;
 };
 
 type VolChartProps = {
@@ -78,6 +80,15 @@ const CustomTooltipContent = ({
         <div>IV: {(iv * 100).toFixed(2)}%</div>
         <div>Log Moneyness: {data.logMoneyness.toFixed(2)}</div>
         <div>Moneyness: {data.moneyness.toFixed(2)}</div>
+        {"markPrice" in data && data.markPrice !== undefined && (
+          <div>Premium: {dollarFormatter.format(data.markPrice)}</div>
+        )}
+        {"callPremium" in data && data.callPremium !== undefined && (
+          <div>Call Premium: {dollarFormatter.format(data.callPremium)}</div>
+        )}
+        {"putPremium" in data && data.putPremium !== undefined && (
+          <div>Put Premium: {dollarFormatter.format(data.putPremium)}</div>
+        )}
       </CardContent>
     );
   }

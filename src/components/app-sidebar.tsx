@@ -38,7 +38,9 @@ export function AppSidebar({
     const dates = availableExpiries[value] ?? [];
     setEnabledDates(
       dates.map((date) => {
+        console.log("Converting date:", date[0]);
         const newDate = new Date(date[0]); // Convert Unix timestamp to Date
+        console.log("Converted date:", newDate);
         return newDate;
       })
     );
@@ -46,6 +48,7 @@ export function AppSidebar({
 
   const handleDateSelected = (date: Date) => {
     setExpiryDate(date);
+    console.log("Selected expiry date:", date);
   };
 
   const handleViewDetails = () => {
