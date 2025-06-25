@@ -1,6 +1,6 @@
 # Volatility Surface Modeling
 
-This is a frontend for modeling volatility curves/surfaces from Binance options data. You can select the underlying asset, choose expiration dates, and plot implied volatilities. 
+This is a frontend for modeling volatility curves/surfaces from Binance options data. You can select the underlying asset, choose expiration dates, and plot implied volatilities. This frontend project is meant to be used with [vol-surface-modeling](https://github.com/afan2g/vol-surface-modeling).
 
 
 ## Features
@@ -45,13 +45,14 @@ To get a local copy up and running follow these simple example steps.
    ```bash
    yarn install
    ```
-4. Set up environment variables:
+4. Clone and run the API server from [vol-surface-modeling](https://github.com/afan2g/vol-surface-modeling)
+5. Set up environment variables:
    - Create a `.env` file in the root directory.
    - Add the following variables:
      ```
-     VITE_API_URL=http://localhost:5000/
+     VITE_API_URL=http://localhost:5000/api
      ```
-5. Start the development server:
+6. Start the development server:
    ```bash
    npm run dev
    ```
@@ -59,12 +60,12 @@ To get a local copy up and running follow these simple example steps.
    ```bash
    yarn dev
    ```
-6. Change git remote url to avoid accidental pushes to base project
+7. Change git remote url to avoid accidental pushes to base project
    ```sh
    git remote set-url origin github_username/repo_name
    git remote -v # confirm the changes
    ```
-7. Open your browser and navigate to `http://localhost:5173` to view the application.
+8. Open your browser and navigate to `http://localhost:5173` to view the application.
 
 
 ## License
