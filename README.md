@@ -2,6 +2,7 @@
 
 This is a frontend for modeling volatility curves/surfaces from Binance options data. You can select the underlying asset, choose expiration dates, and plot implied volatilities. This frontend project is meant to be used with [vol-surface-modeling](https://github.com/afan2g/vol-surface-modeling).
 
+Link to project hosted on [Vercel](https://vol-surface-frontend.vercel.app/)
 
 ## Features
 
