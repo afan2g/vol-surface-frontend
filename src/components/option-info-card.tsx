@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import Countdown from "react-countdown";
 import type { CountdownTimeDelta } from "react-countdown";
+import CurrencyInput from 'react-currency-input-field';
 import {
   Select,
   SelectContent,
@@ -18,7 +19,7 @@ import {
   naturalSVIVol,
   rawSVIVol,
 } from "@/utils/option-formulas";
-import { Input } from "./ui/input";
+
 type SingleOptionData = {
   bsmPrice: number;
   daysToExpiry: number;
@@ -33,6 +34,7 @@ type SingleOptionData = {
   timeToExpiry: number;
   forwardPrice: number;
 };
+
 type OptionResponse = {
   lastOptionUpdate: number;
   lastExchangeUpdate: number;
@@ -98,42 +100,11 @@ export function OptionInfoCard({
   const [calculatedOption, setCalculatedOption] = useState<SVIPoint | null>(
     null
   );
+  const [inputValue, setInputValue] = useState<string>(sliderValue.toString());
+  const [isInputFocused, setIsInputFocused] = useState<boolean>(false);
 
-  useEffect(() => {
-    setCalculatedOption(null);
-    onOptionChange(null);
-    if (optionsData.C && optionsData.C.length > 0) {
-      // const strikePrices = optionsData.C.map((option) => option.strikePrice);
-      const minPrice = optionsData.C[0].strikePrice;
-      const maxPrice = optionsData.C[optionsData.C.length - 1].strikePrice;
-      const step = (maxPrice - minPrice) / 100;
-      setMinStrikePrice(minPrice - 20 * step);
-      setMaxStrikePrice(maxPrice + 20 * step);
-      setSliderValue((minPrice + maxPrice) / 2);
-      setSliderStep(step);
-    } else if (optionsData.P && optionsData.P.length > 0) {
-      const minPrice = optionsData.P[0].strikePrice;
-      const maxPrice = optionsData.P[optionsData.P.length - 1].strikePrice;
-      const step = (maxPrice - minPrice) / 100;
-      setMinStrikePrice(minPrice - 20 * step);
-      setMaxStrikePrice(maxPrice + 20 * step);
-      setSliderValue((minPrice + maxPrice) / 2);
-      setSliderStep(step);
-    }
-  }, [optionsData.expiry, optionsData.asset]);
-  const dollarFormatter = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  });
-
-  const handleTick = (timedelta: CountdownTimeDelta) => {
-    if (timedelta.seconds >= 5) {
-      onRefresh?.();
-    }
-  };
-  const handleValueChange = (value: number[]) => {
-    setSliderValue(value[0]);
-    const strikePrice = value[0];
+  // Helper function to calculate option data
+  const calculateOptionData = (strikePrice: number): SVIPoint => {
     const forwardPrice = optionsData.forwardPrice;
     const logMoneyness = calculateLogMoneyness(strikePrice, forwardPrice);
     const moneyness = calculateMoneyness(strikePrice, forwardPrice);
@@ -147,6 +118,7 @@ export function OptionInfoCard({
             timeToExpiry
           )
         : rawSVIVol(strikePrice, forwardPrice, sviParams || [], timeToExpiry);
+    
     const callPrice = calculateBSMPrice({
       strikePrice,
       spotPrice: optionsData.spotPrice,
@@ -155,6 +127,7 @@ export function OptionInfoCard({
       impliedVolatility,
       isCall: true,
     });
+    
     const putPrice = calculateBSMPrice({
       strikePrice,
       spotPrice: optionsData.spotPrice,
@@ -164,7 +137,7 @@ export function OptionInfoCard({
       isCall: false,
     });
 
-    const newOptionData: SVIPoint = {
+    return {
       impliedVolatility,
       logMoneyness,
       moneyness,
@@ -172,57 +145,108 @@ export function OptionInfoCard({
       callPremium: callPrice,
       putPremium: putPrice,
     };
+  };
+
+  // Update calculated option and sync states
+  const updateOptionCalculation = (strikePrice: number) => {
+    const newOptionData = calculateOptionData(strikePrice);
     setCalculatedOption(newOptionData);
     onOptionChange(newOptionData);
+    setSliderValue(strikePrice);
+    // Only update input value if user is not currently typing
+    if (!isInputFocused) {
+      setInputValue(strikePrice.toFixed(2));
+    }
   };
 
   useEffect(() => {
-    if (calculatedOption) {
-      const forwardPrice = optionsData.forwardPrice;
-      const strikePrice = calculatedOption.strikePrice;
-      const timeToExpiry = optionsData.timeToExpiry;
-      const logMoneyness = calculateLogMoneyness(strikePrice, forwardPrice);
-      const moneyness = calculateMoneyness(strikePrice, forwardPrice);
-      const impliedVolatility =
-        sviType === "natural"
-          ? naturalSVIVol(
-              strikePrice,
-              forwardPrice,
-              sviParams || [],
-              timeToExpiry
-            )
-          : rawSVIVol(strikePrice, forwardPrice, sviParams || [], timeToExpiry);
-      const callPrice = calculateBSMPrice({
-        strikePrice,
-        spotPrice: optionsData.spotPrice,
-        timeToExpiry: optionsData.timeToExpiry,
-        riskFreeRate: optionsData.riskFreeRate,
-        impliedVolatility: impliedVolatility,
-        isCall: true,
-      });
-      const putPrice = calculateBSMPrice({
-        strikePrice,
-        spotPrice: optionsData.spotPrice,
-        timeToExpiry: optionsData.timeToExpiry,
-        riskFreeRate: optionsData.riskFreeRate,
-        impliedVolatility: impliedVolatility,
-        isCall: false,
-      });
-      setCalculatedOption({
-        impliedVolatility,
-        logMoneyness,
-        moneyness,
-        strikePrice,
-        callPremium: callPrice,
-        putPremium: putPrice,
-      });
+    setCalculatedOption(null);
+    onOptionChange(null);
+    if (optionsData.C && optionsData.C.length > 0) {
+      const minPrice = optionsData.C[0].strikePrice;
+      const maxPrice = optionsData.C[optionsData.C.length - 1].strikePrice;
+      const step = (maxPrice - minPrice) / 100;
+      const midPrice = (minPrice + maxPrice) / 2;
+      
+      setMinStrikePrice(minPrice - 20 * step);
+      setMaxStrikePrice(maxPrice + 20 * step);
+      setSliderStep(step);
+      updateOptionCalculation(midPrice);
+    } else if (optionsData.P && optionsData.P.length > 0) {
+      const minPrice = optionsData.P[0].strikePrice;
+      const maxPrice = optionsData.P[optionsData.P.length - 1].strikePrice;
+      const step = (maxPrice - minPrice) / 100;
+      const midPrice = (minPrice + maxPrice) / 2;
+      
+      setMinStrikePrice(minPrice - 20 * step);
+      setMaxStrikePrice(maxPrice + 20 * step);
+      setSliderStep(step);
+      updateOptionCalculation(midPrice);
     }
-  }, [optionsData]);
+  }, [optionsData.expiry, optionsData.asset]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value.replace(/[^0-9.-]+/g, ""));
-    setSliderValue(value);
+  // Recalculate when SVI params or type changes
+  useEffect(() => {
+    if (calculatedOption && sviParams) {
+      updateOptionCalculation(sliderValue);
+    }
+  }, [sviParams, sviType]);
+
+  const dollarFormatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  });
+
+  const handleTick = (timedelta: CountdownTimeDelta) => {
+    if (timedelta.seconds >= 5) {
+      onRefresh?.();
+    }
   };
+
+  // Handle slider value changes
+  const handleSliderChange = (value: number[]) => {
+    updateOptionCalculation(value[0]);
+  };
+
+  // Handle manual input changes
+  const handleInputChange = (value: string | undefined) => {
+    const stringValue = value || "";
+    setInputValue(stringValue);
+    
+    // Only update calculations if the value is a valid number
+    const numericValue = Number(stringValue);
+    if (!isNaN(numericValue) && numericValue > 0) {
+      // Clamp the value within bounds
+      const clampedValue = Math.max(
+        minStrikePrice || 0,
+        Math.min(maxStrikePrice || Infinity, numericValue)
+      );
+      setSliderValue(clampedValue);
+    }
+  };
+
+  // Handle input blur (when user finishes typing)
+  const handleInputBlur = () => {
+    setIsInputFocused(false);
+    const numericValue = Number(inputValue);
+    if (!isNaN(numericValue) && numericValue > 0) {
+      // Clamp the value within bounds
+      const clampedValue = Math.max(
+        minStrikePrice || 0,
+        Math.min(maxStrikePrice || Infinity, numericValue)
+      );
+      updateOptionCalculation(clampedValue);
+    } else {
+      // Reset to current slider value if invalid input
+      setInputValue(sliderValue.toFixed(2));
+    }
+  };
+
+  // Handle input focus
+  const handleInputFocus = () => {
+    setIsInputFocused(true);
+  };
+
 
   return (
     <Card>
@@ -299,19 +323,19 @@ export function OptionInfoCard({
               </SelectContent>
             </Select>
             <span>
-              {sviType === "natural" ? "∆" : "a"}: {sviParams?.[0].toFixed(4)}
+              {sviType === "natural" ? "∆" : "a"}: {sviParams?.[0]?.toFixed(4) ?? 'N/A'}
             </span>
             <span>
-              {sviType === "natural" ? "µ" : "b"}: {sviParams?.[1].toFixed(4)}
+              {sviType === "natural" ? "µ" : "b"}: {sviParams?.[1]?.toFixed(4) ?? 'N/A'}
             </span>
             <span>
-              {sviType === "natural" ? "ρ" : "ρ"}: {sviParams?.[2].toFixed(4)}
+              {sviType === "natural" ? "ρ" : "ρ"}: {sviParams?.[2]?.toFixed(4) ?? 'N/A'}
             </span>
             <span>
-              {sviType === "natural" ? "ω" : "m"}: {sviParams?.[3].toFixed(4)}
+              {sviType === "natural" ? "ω" : "m"}: {sviParams?.[3]?.toFixed(4) ?? 'N/A'}
             </span>
             <span>
-              {sviType === "natural" ? "ζ" : "σ"}: {sviParams?.[4].toFixed(4)}
+              {sviType === "natural" ? "ζ" : "σ"}: {sviParams?.[4]?.toFixed(4) ?? 'N/A'}
             </span>
           </div>
         </div>
@@ -321,24 +345,34 @@ export function OptionInfoCard({
             max={maxStrikePrice}
             step={sliderStep}
             value={[sliderValue]}
-            onValueChange={handleValueChange}
-          />
-          <Input
-            className="mx-2 w-1/6"
-            value={dollarFormatter.format(sliderValue)}
-            onChangeCapture={handleInputChange}
+            onValueChange={handleSliderChange}
+            className="w-full"
           />
         </div>
         <div className="flex flex-col text-sm text-gray-500 mt-2">
+          <div className="flex flex-row items-center justify-start">
+            <span>Selected Strike Price:</span>
+            <CurrencyInput
+              className="ml-2 w-32 p-1 border rounded text-white font-bold"
+              id="strike-price-input"
+              name="strikePrice"
+              value={inputValue}
+              onValueChange={handleInputChange}
+              onFocus={handleInputFocus}
+              onBlur={handleInputBlur}
+              prefix="$"
+              decimalScale={2}
+              allowNegativeValue={false}
+              allowDecimals={true}
+            />
+          </div>
+          
+          <span>Moneyness (F/K): {calculatedOption?.moneyness.toFixed(4) ?? 'N/A'}</span>
           <span>
-            Selected Strike Price: {dollarFormatter.format(sliderValue)}
+            Log Moneyness: {calculatedOption?.logMoneyness.toFixed(4) ?? 'N/A'}
           </span>
-          <span>Moneyness (F/K): {calculatedOption?.moneyness.toFixed(4)}</span>
           <span>
-            Log Moneyness: {calculatedOption?.logMoneyness.toFixed(4)}
-          </span>
-          <span>
-            Implied Volatility: {calculatedOption?.impliedVolatility.toFixed(4)}
+            Implied Volatility: {calculatedOption?.impliedVolatility.toFixed(4) ?? 'N/A'}
           </span>
           <span>
             BSM Call Premium:{" "}

@@ -78,6 +78,8 @@ export default function Layout() {
   const [option, setOption] = useState<SelectedOption | null>(null);
   const [customOption, setCustomOption] = useState<SviPoint | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const optionInfoWidth = 550; 
+  const optionInfoSize = optionInfoWidth/window.innerWidth * 100;
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -264,25 +266,25 @@ export default function Layout() {
         />
         <ResizablePanelGroup direction="horizontal">
           <SidebarTrigger />
-          <ResizablePanel minSize={25}>
+          <ResizablePanel minSize={optionInfoSize}>
             <div className="flex flex-col h-screen">
-              {optionData && (
-                <div className="flex-shrink-0 px-2 pt-2">
-                  <OptionInfoCard
-                    optionsData={optionData}
-                    selectedOption={option || undefined}
-                    spotPrices={assetSpotPrices}
-                    onRefresh={handleRefresh}
-                    sviParams={sviParams || undefined}
-                    sviType={sviType}
-                    onSviChange={handleSviChange}
-                    onOptionChange={handleCustomOptionChange}
-                  />
-                </div>
-              )}
-
               <div className="flex-1 overflow-hidden">
                 <ScrollArea className="h-full px-2">
+                  {optionData && (
+                    <div className="flex-shrink-0 pt-2">
+                      <OptionInfoCard
+                        optionsData={optionData}
+                        selectedOption={option || undefined}
+                        spotPrices={assetSpotPrices}
+                        onRefresh={handleRefresh}
+                        sviParams={sviParams || undefined}
+                        sviType={sviType}
+                        onSviChange={handleSviChange}
+                        onOptionChange={handleCustomOptionChange}
+                      />
+                    </div>
+                  )}
+
                   {optionData?.C && (
                     <OptionChainTable
                       optionData={optionData.C}
